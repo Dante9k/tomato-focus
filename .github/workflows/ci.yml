@@ -29,16 +29,17 @@ jobs:
       - name: Verify Visual Studio solution
         run: ./scripts/build-solution.ps1
       - name: Build, verify, render and package
-        run: ./package.ps1
+        run: ./scripts/build-website.ps1
       - name: Check C# formatting
         run: ./scripts/format-code.ps1 -Check
       - name: Check archive boundaries
         run: ./scripts/check-package.ps1
-      - name: Upload portable package
+      - name: Upload installer and portable package
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: tomato-focus-win-x64
           path: |
+            dist/*-Setup.exe
             dist/*.zip
             dist/*.sha256
           if-no-files-found: error
@@ -53,5 +54,6 @@ jobs:
             build/render-results.txt
             build/tomato-widget.png
             build/tomato-alarm.png
+            build/installer-preview.png
           if-no-files-found: warn
           retention-days: 7

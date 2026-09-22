@@ -18,8 +18,13 @@ namespace Tomato
         readonly Stopwatch watch = new Stopwatch();
         double previous, spawn;
         public Point Origin;
+        public Func<Point> OriginProvider { get; set; }
         public int Frames { get; private set; }
         public int PeakParticles { get; private set; }
+
+        public event EventHandler<FlightSoundEventArgs> SoundCue;
+        public int LaunchCues { get; private set; }
+        public int ImpactCues { get; private set; }
 
         public int RenderTier
         {
@@ -75,6 +80,7 @@ namespace Tomato
         {
             CompositionTarget.Rendering -= Frame;
             watch.Stop();
+            OriginProvider = null;
             flights.Clear();
             sprites.Clear();
             visual.Children.Clear();
@@ -109,7 +115,12 @@ namespace Tomato
             int steps = Math.Max(1, (int)Math.Ceiling(dt / .016));
             for (int s = 0; s < steps; s++)
                 for (int i = flights.Count - 1; i >= 0; i--)
-                    if (!flights[i].Step(dt / steps, width, height))
+                {
+                    var flight = flights[i];
+                    bool alive = flight.Step(dt / steps, width, height);
+                    if (flight.Impacted && alive && flight.X >= 0 && flight.X <= width)
+                        EmitSound(new FlightSoundEventArgs(FlightSoundKind.Impact, flight.X, width, flight.Size, flight.ImpactSpeed, flight.Resting));
+                    if (!alive)
                     {
                         Sprite sprite;
                         if (sprites.TryGetValue(flights[i], out sprite))
@@ -120,16 +131,19 @@ namespace Tomato
 
                         flights.RemoveAt(i);
                     }
+                }
 
             PeakParticles = Math.Max(PeakParticles, flights.Count);
         }
 
         void Launch(double width, double height)
         {
+            if (OriginProvider != null)
+                Origin = OriginProvider();
             // Solve a ballistic arc from the actual stem towards a random floor target.
             double target = 40 + random.NextDouble() * Math.Max(20, width - 80);
             double duration = 1.05 + random.NextDouble() * .85;
-            double size = 65 + random.NextDouble() * 70;
+            double size = 50 + random.NextDouble() * 50;
             var f = new Flight
             {
                 X = Origin.X,
@@ -141,6 +155,17 @@ namespace Tomato
             f.Vx = (target - f.X) / duration;
             f.Vy = (height - size * .4 - f.Y - .5 * 920 * duration * duration) / duration;
             flights.Add(f);
+            EmitSound(new FlightSoundEventArgs(FlightSoundKind.Launch, f.X, width, f.Size, Math.Sqrt(f.Vx * f.Vx + f.Vy * f.Vy), false));
+        }
+
+        void EmitSound(FlightSoundEventArgs cue)
+        {
+            if (cue.Kind == FlightSoundKind.Launch)
+                LaunchCues++;
+            else
+                ImpactCues++;
+            if (SoundCue != null)
+                SoundCue(this, cue);
         }
 
         public void Draw()
@@ -163,7 +188,7 @@ namespace Tomato
                 matrix.Rotate(f.Angle);
                 matrix.Translate(f.X, f.Y);
                 sprite.Transform.Matrix = matrix;
-                sprite.Visual.Opacity = Math.Min(1, Math.Max(0, (6 - f.Age) / .45));
+                sprite.Visual.Opacity = Math.Min(f.Resting ? Math.Max(0, 1 - f.RestAge / .32) : 1, Math.Max(0, (6 - f.Age) / .45));
             }
         }
 

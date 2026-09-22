@@ -3,3 +3,5 @@
 *.ico binary
 *.zip binary
 *.exe binary
+*.wav binary
+*.ogg binary

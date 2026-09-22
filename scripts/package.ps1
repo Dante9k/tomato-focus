@@ -22,3 +22,4 @@ Compress-Archive -LiteralPath @($releaseFiles | ForEach-Object { Join-Path $rele
 $hash = Get-FileHash -LiteralPath $archivePath -Algorithm SHA256
 ($hash.Hash + "  $releaseName.zip") | Set-Content -LiteralPath ($archivePath + '.sha256') -Encoding ASCII
 Write-Host "Package created: dist/$releaseName.zip"
+& (Join-Path $PSScriptRoot 'build-installer.ps1')

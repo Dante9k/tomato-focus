@@ -14,7 +14,7 @@
     <DebugType>none</DebugType>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <ApplicationManifest>app.manifest</ApplicationManifest>
-    <ApplicationIcon>..\..\assets\tomato-cute.ico</ApplicationIcon>
+    <ApplicationIcon>..\..\assets\brand\tomato-focus.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -30,6 +30,7 @@
     <Reference Include="UIAutomationProvider" />
     <Compile Include="Application\*.cs;Domain\*.cs;Infrastructure\*.cs;Presentation\*.cs;Properties\*.cs;Program.cs" />
     <EmbeddedResource Include="..\..\assets\tomato-cute.png"><LogicalName>Tomato.Texture.png</LogicalName></EmbeddedResource>
+    <EmbeddedResource Include="..\..\assets\audio\impact-soft-*.wav"><LogicalName>Tomato.Audio.%(Filename)%(Extension)</LogicalName></EmbeddedResource>
     <None Include="App.config" />
     <None Include="app.manifest" />
   </ItemGroup>

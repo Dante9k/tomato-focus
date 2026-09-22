@@ -7,6 +7,7 @@ $projectRoot = Split-Path $PSScriptRoot -Parent
 $framework = Join-Path $env:WINDIR 'Microsoft.NET\Framework64\v4.0.30319'
 $compiler = Join-Path $framework 'csc.exe'
 if (!(Test-Path -LiteralPath $compiler)) { throw 'Windows x64 with .NET Framework 4.8 is required.' }
+& (Join-Path $PSScriptRoot 'build-brand-icon.ps1')
 
 $output = Join-Path $projectRoot 'build'
 New-Item -ItemType Directory -Force -Path $output | Out-Null
@@ -17,10 +18,14 @@ $application = Join-Path $projectRoot 'src\Tomato.Focus'
 $appArguments = $common + @(
     '/target:winexe',
     ('/win32manifest:' + (Join-Path $application 'app.manifest')),
-    ('/win32icon:' + (Join-Path $projectRoot 'assets\tomato-cute.ico')),
+    ('/win32icon:' + (Join-Path $projectRoot 'assets\brand\tomato-focus.ico')),
     ('/resource:' + (Join-Path $projectRoot 'assets\tomato-cute.png') + ',Tomato.Texture.png'),
     ('/out:' + (Join-Path $output 'Tomato.exe'))
 )
+foreach ($index in 0..2) {
+    $name = "impact-soft-$index.wav"
+    $appArguments += '/resource:' + (Join-Path $projectRoot "assets\audio\$name") + ',Tomato.Audio.' + $name
+}
 $appArguments += @(Get-ChildItem -LiteralPath $application -Recurse -Filter *.cs | Where-Object { $_.FullName -notmatch '[\\/]obj[\\/]' } | Sort-Object FullName | ForEach-Object { $_.FullName })
 & $compiler $appArguments
 if ($LASTEXITCODE -ne 0) { throw 'Application compilation failed.' }

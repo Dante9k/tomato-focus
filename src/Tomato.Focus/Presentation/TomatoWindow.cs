@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -11,25 +12,38 @@ namespace Tomato
 {
     public sealed class TomatoWindow : Window
     {
-        public const double DesktopScale = .72;
         readonly AppController controller;
         readonly Canvas canvas;
+        readonly Image fruit;
+        readonly Viewbox viewbox;
+        readonly ScaleTransform appearanceScale = new ScaleTransform(1, 1);
+        int appearanceRevision;
+        bool appearanceAnimating;
         readonly TimeWheel hours, minutes, seconds;
         readonly StackPanel picker;
-        readonly TextBlock hint, status;
+        readonly StackPanel countdown;
+        readonly RecessedGlyph[] countdownDigits = new RecessedGlyph[3];
+        readonly RecessedGlyph[] countdownSeparators = new RecessedGlyph[2];
+        readonly TextBlock countdownCaption;
+        readonly TextBlock status;
         readonly Border glass;
-        readonly FrameworkElement branding;
+        readonly ShakeDetector shake = new ShakeDetector();
+        readonly System.Windows.Threading.DispatcherTimer statusTimer = new System.Windows.Threading.DispatcherTimer
+        {
+            Interval = TimeSpan.FromSeconds(2)
+        };
         readonly Button menu;
         Point screenDown;
         bool pressed, moved;
+        bool focusAppearance;
         public bool AlarmMode { get; private set; }
 
         public TomatoWindow(AppController controller, BitmapSource art)
         {
             this.controller = controller;
             Title = "朱果 · 番茄钟";
-            Width = 440 * DesktopScale;
-            Height = 456 * DesktopScale;
+            Width = 250;
+            Height = 250;
             WindowStyle = WindowStyle.None;
             ResizeMode = ResizeMode.NoResize;
             AllowsTransparency = true;
@@ -38,51 +52,62 @@ namespace Tomato
             ShowInTaskbar = false;
             canvas = new Canvas
             {
-                Width = 440,
-                Height = 456,
+                Width = 250,
+                Height = 250,
                 Background = Brushes.Transparent
             };
-            Content = new Viewbox
+            viewbox = new Viewbox
             {
-                Width = this.Width,
-                Height = this.Height,
                 Child = canvas,
-                Stretch = Stretch.Uniform
+                Stretch = Stretch.Uniform,
+                RenderTransform = appearanceScale,
+                RenderTransformOrigin = new Point(1, 0)
             };
-            var fruit = new Image
+            Content = viewbox;
+            fruit = new Image
             {
+                Name = "FruitArtwork",
                 Source = art,
-                Width = 440,
-                Height = 440,
+                Width = 250,
+                Height = 250,
                 IsHitTestVisible = false
             };
             canvas.Children.Add(fruit);
-            branding = Label("T O M A T O   /   F O C U S", 10, "#FCDDB8", true);
-            Place(branding, 0, 183, 440);
+            ToolTip = "双击绿蒂开始 · 拖动果身移动 · 专注时摇晃取消";
             glass = new Border
             {
-                Width = 276,
-                Height = 146,
-                CornerRadius = new CornerRadius(25),
-                Background = Art.Brush("#641F070D"),
+                Name = "TimeEditorFrame",
+                Width = 174,
+                Height = 92,
+                CornerRadius = new CornerRadius(19),
+                Background = new LinearGradientBrush(Color.FromArgb(145, 44, 8, 12), Color.FromArgb(90, 67, 10, 16), 90),
                 BorderBrush = Art.Brush("#32FFD4AC"),
                 BorderThickness = new Thickness(1)
             };
-            Place(glass, 82, 204);
+            Place(glass, 38, 100);
             var selection = new Border
             {
-                Width = 256,
-                Height = 43,
+                Width = 158,
+                Height = 30,
                 CornerRadius = new CornerRadius(10),
-                Background = Art.Brush("#12FFF2CE"),
+                Background = new LinearGradientBrush(Color.FromArgb(28, 255, 242, 218), Color.FromArgb(8, 255, 242, 218), 90),
                 BorderBrush = Art.Brush("#17FFE6C3"),
                 BorderThickness = new Thickness(0, 1, 0, 1)
             };
             var inside = new Canvas();
             glass.Child = inside;
             inside.Children.Add(selection);
-            Canvas.SetLeft(selection, 9);
-            Canvas.SetTop(selection, 45);
+            Canvas.SetLeft(selection, 7);
+            Canvas.SetTop(selection, 30);
+            for (int i = 0; i < 2; i++)
+            {
+                var separator = Label(":", 19, "#BCFFE6CB", false);
+                separator.Width = 12;
+                inside.Children.Add(separator);
+                Canvas.SetLeft(separator, 57 + i * 48);
+                Canvas.SetTop(separator, 32);
+            }
+
             picker = new StackPanel
             {
                 Orientation = Orientation.Horizontal
@@ -93,7 +118,42 @@ namespace Tomato
             picker.Children.Add(hours);
             picker.Children.Add(minutes);
             picker.Children.Add(seconds);
-            Place(picker, 103, 204);
+            Place(picker, 53, 100);
+            countdownCaption = Label("剩余专注时间", 10, "#E6F6D9BF", false);
+            countdownCaption.Visibility = Visibility.Hidden;
+            Place(countdownCaption, 38, 110, 174);
+            countdown = new StackPanel
+            {
+                Name = "CountdownReadout",
+                Orientation = Orientation.Horizontal,
+                Visibility = Visibility.Hidden,
+                IsHitTestVisible = false
+            };
+            for (int i = 0; i < countdownDigits.Length; i++)
+            {
+                if (i > 0)
+                {
+                    var separator = new RecessedGlyph
+                    {
+                        Text = ":",
+                        FontSize = 32
+                    };
+                    separator.Width = 8;
+                    separator.Margin = new Thickness(0, 4, 0, 0);
+                    countdownSeparators[i - 1] = separator;
+                    countdown.Children.Add(separator);
+                }
+
+                countdownDigits[i] = new RecessedGlyph
+                {
+                    Text = "00",
+                    FontSize = 32,
+                    Width = 42
+                };
+                countdown.Children.Add(countdownDigits[i]);
+            }
+
+            Place(countdown, 73, 124);
             foreach (var wheel in new[]
             {
                 hours,
@@ -102,47 +162,30 @@ namespace Tomato
             }
 
             )
+            {
                 wheel.ValueChanged += delegate
                 {
                     if (controller != null)
                         controller.DurationChanged();
                 };
-            var units = new Grid
-            {
-                Width = 234
-            };
-            for (int i = 0; i < 3; i++)
-                units.ColumnDefinitions.Add(new ColumnDefinition());
-            string[] captions =
-            {
-                "小时",
-                "分钟",
-                "秒"
-            };
-            for (int i = 0; i < 3; i++)
-            {
-                var unit = Label(captions[i], 11.5, "#E6F6D9BF", false);
-                Grid.SetColumn(unit, i);
-                units.Children.Add(unit);
+                wheel.DetentCrossed += delegate
+                {
+                    if (controller != null)
+                        controller.WheelTick();
+                };
             }
 
-            Place(units, 103, 334);
-            units.Name = "Units";
-            units.IsHitTestVisible = false;
-            status = Label("让时间，慢慢成熟。", 13.5, "#FFF0D2", false);
-            Place(status, 0, 354, 440);
-            hint = Label("双击绿蒂开始  ·  拖动果身移动", 13, "#FFF3DC", false);
-            var hintBack = new Border
+            status = Label("", 10.5, "#FFF0D2", false);
+            Place(status, 0, 201, 250);
+            statusTimer.Tick += delegate
             {
-                Width = 330,
-                Background = Art.Brush("#DA292C28"),
-                CornerRadius = new CornerRadius(16),
-                Padding = new Thickness(15, 8, 15, 8),
-                Child = hint
+                statusTimer.Stop();
+                if (controller.Phase == TimerPhase.Editing)
+                    status.Text = "";
             };
-            Place(hintBack, 55, 413);
             menu = new Button
             {
+                Name = "TomatoMenu",
                 Content = "···",
                 Width = 32,
                 Height = 24,
@@ -158,10 +201,26 @@ namespace Tomato
             {
                 OpenMenu();
             };
-            Place(menu, 329, 176);
+            Place(menu, 185, 83);
             MouseLeftButtonDown += OnDown;
             MouseMove += OnMove;
             MouseLeftButtonUp += OnUp;
+            LostMouseCapture += delegate
+            {
+                ResetGesture();
+            };
+            IsVisibleChanged += delegate
+            {
+                if (!IsVisible)
+                {
+                    if (appearanceAnimating)
+                        FinishAppearance();
+                    ResetGesture();
+                    statusTimer.Stop();
+                    if (controller != null)
+                        controller.StopWheelFeedback();
+                }
+            };
             KeyDown += delegate (object sender, KeyEventArgs e)
             {
                 if (e.Key == Key.Escape)
@@ -183,7 +242,11 @@ namespace Tomato
                     Hide();
                 }
             };
-            ContextMenu = BuildMenu();
+            MouseRightButtonUp += delegate (object sender, MouseButtonEventArgs e)
+            {
+                controller.OpenSettings();
+                e.Handled = true;
+            };
         }
 
         static TextBlock Label(string text, double size, string color, bool bold)
@@ -233,26 +296,27 @@ namespace Tomato
 
         public void SetAlarm(bool alarm)
         {
+            // Restore about the current top-right anchor; the emitter follows the animated stem.
+            SetFocusAppearance(false);
+            shake.Reset(0, 0);
+            statusTimer.Stop();
             AlarmMode = alarm;
+            countdown.Visibility = Visibility.Hidden;
+            countdownCaption.Visibility = Visibility.Hidden;
             picker.Visibility = alarm ? Visibility.Hidden : Visibility.Visible;
             glass.Visibility = alarm ? Visibility.Hidden : Visibility.Visible;
-            foreach (UIElement child in canvas.Children)
-            {
-                var fe = child as FrameworkElement;
-                if (fe != null && fe.Name == "Units")
-                    fe.Visibility = alarm ? Visibility.Hidden : Visibility.Visible;
-            }
-
-            status.Text = alarm ? "好好休息，再次出发。" : "让时间，慢慢成熟。";
-            hint.Text = alarm ? "拖动番茄或双击，结束提醒" : "双击绿蒂开始  ·  拖动果身移动";
+            menu.Visibility = Visibility.Visible;
+            status.Text = alarm ? "拖动或双击，结束提醒" : "";
+            status.Visibility = Visibility.Visible;
+            Canvas.SetTop(status, alarm ? 191 : 201);
             if (alarm)
             {
-                var title = Label("时间到了", 31, "#FFF4DE", true);
+                var title = Label("时间到了", 25, "#FFF4DE", true);
                 title.Name = "AlarmTitle";
-                Place(title, 0, 229, 440);
-                var subtitle = Label("W E L L   D O N E", 10, "#FFDBBC", false);
+                Place(title, 0, 137, 250);
+                var subtitle = Label("休息一下", 11, "#FFDBBC", false);
                 subtitle.Name = "AlarmSubtitle";
-                Place(subtitle, 0, 281, 440);
+                Place(subtitle, 0, 176, 250);
             }
             else
             {
@@ -268,13 +332,15 @@ namespace Tomato
         public void Error(string text)
         {
             status.Text = text;
+            statusTimer.Stop();
+            statusTimer.Start();
         }
 
         public Point ThrowOrigin
         {
             get
             {
-                return canvas.TranslatePoint(new Point(222, 120), this);
+                return canvas.TranslatePoint(new Point(125, 55), this);
             }
         }
 
@@ -284,7 +350,7 @@ namespace Tomato
                 return;
             var p = e.GetPosition(canvas);
             // Only the visible fruit is draggable; transparent desktop corners pass through.
-            if (p.Y < 45 || p.Y > 395 || p.X < 40 || p.X > 409)
+            if (p.Y < 12 || p.Y > 239 || p.X < 13 || p.X > 237)
                 return;
             if (e.ClickCount == 2)
             {
@@ -301,6 +367,9 @@ namespace Tomato
             pressed = true;
             moved = false;
             screenDown = canvas.PointToScreen(p);
+            var transform = PresentationSource.FromVisual(this).CompositionTarget.TransformFromDevice;
+            var dip = transform.Transform(screenDown);
+            shake.Reset(dip.X, dip.Y);
             CaptureMouse();
             e.Handled = true;
         }
@@ -324,13 +393,23 @@ namespace Tomato
             Left += delta.X;
             Top += delta.Y;
             screenDown = screen;
+            var dip = transform.Transform(screen);
+            if (controller.Phase == TimerPhase.Running && shake.Move(dip.X, dip.Y, Stopwatch.GetTimestamp() / (double)Stopwatch.Frequency))
+            {
+                ResetGesture();
+                controller.ClampWindow();
+                controller.Cancel();
+                Error("已取消专注");
+            }
         }
 
         void OnUp(object sender, MouseButtonEventArgs e)
         {
+            bool wasMoved = moved;
             pressed = false;
             ReleaseMouseCapture();
-            if (moved)
+            shake.Reset(0, 0);
+            if (wasMoved)
             {
                 controller.ClampWindow();
                 controller.Save();
@@ -339,11 +418,151 @@ namespace Tomato
             e.Handled = true;
         }
 
-        public void ShowCountdown(string remaining)
+        public void ShowCountdown(int remaining)
         {
-            status.Text = "专注中 · " + remaining;
-            hint.Text = "计时仍在继续 · 从托盘取消";
+            SetFocusAppearance(true);
+            remaining = Math.Max(0, Math.Min(86399, remaining));
+            if (countdown.Visibility != Visibility.Visible)
+            {
+                ResetGesture();
+                statusTimer.Stop();
+                status.Text = "专注中 · 摇晃取消";
+            }
+
             picker.IsEnabled = false;
+            picker.Visibility = Visibility.Hidden;
+            glass.Visibility = Visibility.Hidden;
+            menu.Visibility = Visibility.Hidden;
+            countdown.Visibility = Visibility.Visible;
+            countdownCaption.Visibility = Visibility.Hidden;
+            status.Visibility = Visibility.Hidden;
+            countdownDigits[0].Text = (remaining / 3600).ToString("00");
+            countdownDigits[1].Text = (remaining / 60 % 60).ToString("00");
+            countdownDigits[2].Text = (remaining % 60).ToString("00");
+            bool showHours = remaining >= 3600;
+            countdownDigits[0].Visibility = showHours ? Visibility.Visible : Visibility.Collapsed;
+            countdownSeparators[0].Visibility = showHours ? Visibility.Visible : Visibility.Collapsed;
+            foreach (var digit in countdownDigits)
+            {
+                digit.FontSize = showHours ? 30 : 40;
+                digit.Width = showHours ? 36 : 48;
+            }
+
+            foreach (var separator in countdownSeparators)
+                separator.FontSize = showHours ? 24 : 32;
+            Canvas.SetLeft(countdown, showHours ? 63 : 73);
+            AutomationProperties.SetName(countdown, "剩余专注时间 " + countdownDigits[0].Text + " 时 " + countdownDigits[1].Text + " 分 " + countdownDigits[2].Text + " 秒");
+        }
+
+        // Persist the expanded position, so restoring a miniature never shifts it again.
+        public double ExpandedLeft
+        {
+            get
+            {
+                return Left + Width - 250;
+            }
+        }
+
+        void SetFocusAppearance(bool focused, bool animate = true)
+        {
+            Topmost = true;
+            if (focusAppearance == focused && animate)
+                return;
+            focusAppearance = focused;
+            bool motion = animate && IsVisible && SystemParameters.ClientAreaAnimation;
+            double size = focused ? 125 : 250;
+            double visualWidth = Width * appearanceScale.ScaleX;
+            double visualHeight = Height * appearanceScale.ScaleY;
+            double opacity = fruit.Opacity;
+            int revision = ++appearanceRevision;
+            appearanceScale.BeginAnimation(ScaleTransform.ScaleXProperty, null);
+            appearanceScale.BeginAnimation(ScaleTransform.ScaleYProperty, null);
+            fruit.BeginAnimation(UIElement.OpacityProperty, null);
+            if (!motion)
+            {
+                FinishAppearance();
+                return;
+            }
+
+            // Keep native bounds still while the compositor scales the artwork about its top-right.
+            // This avoids per-frame Win32 resize/layout rounding and also permits dragging mid-flight.
+            SetAppearanceBounds(250);
+            UpdateLayout();
+            viewbox.Measure(new Size(Width, Height));
+            viewbox.Arrange(new Rect(0, 0, Width, Height));
+            appearanceScale.ScaleX = size / Width;
+            appearanceScale.ScaleY = size / Height;
+            fruit.Opacity = focused ? .32 : 1;
+            appearanceAnimating = true;
+            appearanceScale.BeginAnimation(ScaleTransform.ScaleXProperty, AppearanceAnimation(visualWidth / Width, size / Width));
+            var vertical = AppearanceAnimation(visualHeight / Height, size / Height);
+            vertical.Completed += delegate
+            {
+                if (revision == appearanceRevision)
+                    FinishAppearance();
+            };
+            appearanceScale.BeginAnimation(ScaleTransform.ScaleYProperty, vertical);
+            fruit.BeginAnimation(UIElement.OpacityProperty, AppearanceAnimation(opacity, fruit.Opacity));
+        }
+
+        void FinishAppearance()
+        {
+            ++appearanceRevision;
+            appearanceAnimating = false;
+            appearanceScale.BeginAnimation(ScaleTransform.ScaleXProperty, null);
+            appearanceScale.BeginAnimation(ScaleTransform.ScaleYProperty, null);
+            fruit.BeginAnimation(UIElement.OpacityProperty, null);
+            appearanceScale.ScaleX = appearanceScale.ScaleY = 1;
+            fruit.Opacity = focusAppearance ? .32 : 1;
+            double size = focusAppearance ? 125 : 250;
+            SetAppearanceBounds(size);
+            UpdateLayout();
+            viewbox.Measure(new Size(Width, Height));
+            viewbox.Arrange(new Rect(0, 0, Width, Height));
+            if (controller != null && IsVisible && !AlarmMode)
+            {
+                controller.ClampWindow();
+                controller.Save();
+            }
+        }
+
+        void SetAppearanceBounds(double size)
+        {
+            double right = Left + Width;
+            var source = PresentationSource.FromVisual(this) as System.Windows.Interop.HwndSource;
+            if (source != null && !double.IsNaN(right))
+            {
+                var matrix = source.CompositionTarget.TransformToDevice;
+                var position = matrix.Transform(new Point(right - size, Top));
+                var extent = matrix.Transform(new Vector(size, size));
+                // Move and resize atomically; separate WPF setters can enqueue an old position.
+                if (Native.SetWindowPos(source.Handle, IntPtr.Zero, (int)Math.Round(position.X), (int)Math.Round(position.Y), (int)Math.Round(extent.X), (int)Math.Round(extent.Y), 0x0004 | 0x0010))
+                    return;
+            }
+
+            Width = Height = size;
+            if (!double.IsNaN(right))
+                Left = right - size;
+        }
+
+        static DoubleAnimation AppearanceAnimation(double current, double target)
+        {
+            return new DoubleAnimation(current, target, TimeSpan.FromMilliseconds(460))
+            {
+                EasingFunction = new QuarticEase
+                {
+                    EasingMode = EasingMode.EaseOut
+                },
+                FillBehavior = FillBehavior.HoldEnd
+            };
+        }
+
+        void ResetGesture()
+        {
+            pressed = moved = false;
+            shake.Reset(0, 0);
+            if (IsMouseCaptured)
+                ReleaseMouseCapture();
         }
 
         public void ShowEditor()
@@ -352,67 +571,9 @@ namespace Tomato
             SetAlarm(false);
         }
 
-        public ContextMenu BuildMenu()
-        {
-            var context = new ContextMenu
-            {
-                Background = Art.Brush("#F9F5ED"),
-                Foreground = Art.Brush("#263528"),
-                Padding = new Thickness(7),
-                FontFamily = new FontFamily("Microsoft YaHei UI")
-            };
-            Add(context, "25 分钟 · 专注", delegate
-            {
-                controller.Preset(1500);
-            });
-            Add(context, "5 分钟 · 短休息", delegate
-            {
-                controller.Preset(300);
-            });
-            Add(context, "15 分钟 · 长休息", delegate
-            {
-                controller.Preset(900);
-            });
-            context.Items.Add(new Separator());
-            Add(context, "预览投掷效果 · 8 秒", delegate
-            {
-                controller.Preview();
-            });
-            Add(context, controller.Sound ? "✓ 提示音" : "提示音", delegate
-            {
-                controller.ToggleSound();
-            });
-            Add(context, "取消当前计时 / 停止提醒", delegate
-            {
-                controller.Cancel();
-            });
-            context.Items.Add(new Separator());
-            Add(context, "退出朱果", delegate
-            {
-                controller.Quit();
-            });
-            return context;
-        }
-
-        void Add(ContextMenu menu, string name, Action action)
-        {
-            var item = new MenuItem
-            {
-                Header = name,
-                Padding = new Thickness(12, 7, 12, 7)
-            };
-            item.Click += delegate
-            {
-                action();
-            };
-            menu.Items.Add(item);
-        }
-
         void OpenMenu()
         {
-            ContextMenu = BuildMenu();
-            ContextMenu.PlacementTarget = menu;
-            ContextMenu.IsOpen = true;
+            controller.OpenSettings();
         }
     }
 }

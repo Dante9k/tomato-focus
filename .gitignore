@@ -20,5 +20,10 @@ obj/
 .idea/
 .vscode/
 TestResults/
+__pycache__/
+*.py[cod]
 *-state.xml
 state.xml
+node_modules/
+.venv/
+venv/

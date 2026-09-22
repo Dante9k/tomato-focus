@@ -23,7 +23,9 @@
     <Reference Include="WindowsBase" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
-    <Compile Include="Program.cs;Verification.cs" />
+    <Reference Include="UIAutomationTypes" />
+    <Reference Include="UIAutomationProvider" />
+    <Compile Include="*.cs" />
     <ProjectReference Include="..\..\src\Tomato.Focus\Tomato.Focus.csproj">
       <Project>{70818812-B182-4872-95B8-971D6CE0255C}</Project>
       <Name>Tomato.Focus</Name>

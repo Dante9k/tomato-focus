@@ -1,0 +1,26 @@
+[
+  {
+    "source": "impactSoft_medium_000.ogg",
+    "source_sha256": "7d3ba0bb5e60a11b5d3e558c141303dcf494256675fbf753c0d252d2cf0481e3",
+    "output": "impact-soft-0.wav",
+    "output_sha256": "0853feb3e5bb34f6c315be60d60e3255c725cd316948839720ec6405de9178e9",
+    "seconds": 0.0893,
+    "peak": 0.38
+  },
+  {
+    "source": "impactSoft_medium_001.ogg",
+    "source_sha256": "7642a4fd43e547afe4f7adfadb3dabb681c0ff512f52c1674bae30a726841faf",
+    "output": "impact-soft-1.wav",
+    "output_sha256": "196b2e575a8106854af3f2d6c1524cdfb45eecdb85b74969449033eb9df914c1",
+    "seconds": 0.1173,
+    "peak": 0.3555
+  },
+  {
+    "source": "impactSoft_medium_002.ogg",
+    "source_sha256": "5069e3571a77d7f7aae9ef71d0364aa245fb7d64a7c8cc9956f221d03088c089",
+    "output": "impact-soft-2.wav",
+    "output_sha256": "cdf11493c20350da02f210e684bf8fb07131e5592a830b5c01489e1facc98a6b",
+    "seconds": 0.1163,
+    "peak": 0.38
+  }
+]

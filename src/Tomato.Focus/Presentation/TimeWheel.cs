@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.Globalization;
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Automation.Peers;
@@ -15,24 +16,59 @@ namespace Tomato
         public string Unit { get; private set; }
 
         public event EventHandler ValueChanged;
+        public event EventHandler DetentCrossed;
+        readonly DetentTracker detents = new DetentTracker();
+        readonly FormattedText[] numerals;
+        readonly Brush edgeFade;
+        readonly Pen focusPen = new Pen(Art.Brush("#9AFFE8BC"), 1);
+        double motionVelocity;
         double position, target, downY, downPosition, lastY, speed;
         long lastMove;
         bool dragging, animating;
         int lastValue;
-        const double Row = 42;
+        const double Row = 28;
         public TimeWheel(int limit, string unit)
         {
             Limit = limit;
             Unit = unit;
-            Width = 78;
-            Height = 134;
+            Width = 48;
+            Height = 92;
+            numerals = new FormattedText[limit];
+            var ink = Art.Brush("#FFF4DF");
+            var typeface = new Typeface(new FontFamily("Segoe UI Variable Display"), FontStyles.Normal, FontWeights.Normal, FontStretches.Normal);
+            for (int i = 0; i < limit; i++)
+                numerals[i] = new FormattedText(i.ToString("00"), CultureInfo.InvariantCulture, FlowDirection.LeftToRight, typeface, 24, ink, 1);
+            var fade = new LinearGradientBrush
+            {
+                StartPoint = new Point(0, 0),
+                EndPoint = new Point(0, 1)
+            };
+            fade.GradientStops.Add(new GradientStop(Color.FromArgb(0, 255, 255, 255), 0));
+            fade.GradientStops.Add(new GradientStop(Color.FromArgb(180, 255, 255, 255), .18));
+            fade.GradientStops.Add(new GradientStop(Colors.White, .36));
+            fade.GradientStops.Add(new GradientStop(Colors.White, .64));
+            fade.GradientStops.Add(new GradientStop(Color.FromArgb(180, 255, 255, 255), .82));
+            fade.GradientStops.Add(new GradientStop(Color.FromArgb(0, 255, 255, 255), 1));
+            fade.Freeze();
+            edgeFade = fade;
+            focusPen.Freeze();
             Focusable = true;
             Cursor = Cursors.Hand;
             AutomationProperties.SetName(this, unit);
             ToolTip = "滚动或上下拖动调整" + unit + "；方向键微调，也可直接输入数字";
             Unloaded += delegate
             {
-                EndAnimation();
+                Settle();
+            };
+            IsVisibleChanged += delegate
+            {
+                if (!IsVisible)
+                    Settle();
+            };
+            IsEnabledChanged += delegate
+            {
+                if (!IsEnabled)
+                    Settle();
             };
         }
 
@@ -45,7 +81,12 @@ namespace Tomato
 
             set
             {
+                EndAnimation();
+                dragging = false;
+                ReleaseMouseCapture();
                 position = target = Wrap(value);
+                detents.Reset(position);
+                motionVelocity = 0;
                 Notify();
                 InvalidateVisual();
             }
@@ -64,22 +105,26 @@ namespace Tomato
         protected override void OnRender(DrawingContext dc)
         {
             dc.PushClip(new RectangleGeometry(new Rect(0, 0, ActualWidth, ActualHeight)));
+            dc.PushOpacityMask(edgeFade);
             int nearest = (int)Math.Round(position);
-            for (int i = nearest - 3; i <= nearest + 3; i++)
+            for (int i = nearest - 2; i <= nearest + 2; i++)
             {
-                double y = 46 + (i - position) * Row;
-                double distance = Math.Abs((i - position) * Row);
-                double alpha = Math.Max(0, 1 - distance / 83);
-                dc.PushOpacity(alpha * alpha);
-                double scale = 1 - Math.Min(.17, distance / 350);
-                dc.PushTransform(new ScaleTransform(scale, scale, ActualWidth / 2, y + 22));
-                Art.CenterText(dc, Wrap(i).ToString("00"), 34, Art.Brush("#FFF4DF"), ActualWidth / 2, y, "Segoe UI Variable Display", false);
+                double angle = (i - position) * .68;
+                if (Math.Abs(angle) >= Math.PI / 2)
+                    continue;
+                double depth = Math.Cos(angle);
+                double centerY = 46 + Math.Sin(angle) * 44.5;
+                var text = numerals[Wrap(i)];
+                dc.PushOpacity(Math.Pow(depth, 2.5));
+                dc.PushTransform(new ScaleTransform(.91 + .09 * depth, depth, ActualWidth / 2, centerY));
+                dc.DrawText(text, new Point((ActualWidth - text.Width) / 2, centerY - text.Height / 2));
                 dc.Pop();
                 dc.Pop();
             }
 
+            dc.Pop();
             if (IsKeyboardFocused)
-                dc.DrawRoundedRectangle(null, new Pen(Art.Brush("#9AFFE8BC"), 1), new Rect(3, 46, ActualWidth - 6, 43), 8, 8);
+                dc.DrawRoundedRectangle(null, focusPen, new Rect(2, 30, ActualWidth - 4, 30), 6, 6);
             dc.Pop();
         }
 
@@ -95,6 +140,8 @@ namespace Tomato
 
         protected override void OnMouseWheel(MouseWheelEventArgs e)
         {
+            if (!IsEnabled || e.Delta == 0)
+                return;
             target += e.Delta > 0 ? -1 : 1;
             BeginAnimation();
             Notify();
@@ -104,6 +151,8 @@ namespace Tomato
         protected override void OnMouseLeftButtonDown(MouseButtonEventArgs e)
         {
             Focus();
+            EndAnimation();
+            motionVelocity = 0;
             dragging = true;
             downY = lastY = e.GetPosition(this).Y;
             downPosition = position;
@@ -123,6 +172,8 @@ namespace Tomato
                 speed = .55 * speed + .45 * (lastY - y) / Row / dt;
             position = downPosition + (downY - y) / Row;
             target = position;
+            Feedback();
+            Notify();
             lastY = y;
             lastMove = Stopwatch.GetTimestamp();
             InvalidateVisual();
@@ -137,12 +188,13 @@ namespace Tomato
             ReleaseMouseCapture();
             double y = e.GetPosition(this).Y;
             if (Math.Abs(y - downY) < 4)
-                target = Math.Round(position) + (y < 46 ? -1 : y > 90 ? 1 : 0);
+                target = Math.Round(position) + (y < 30 ? -1 : y > 61 ? 1 : 0);
             else
             {
                 if ((Stopwatch.GetTimestamp() - lastMove) / (double)Stopwatch.Frequency > .12)
                     speed = 0;
                 target = Math.Round(position + Math.Max(-8, Math.Min(8, speed * .15)));
+                motionVelocity = Math.Max(-40, Math.Min(40, speed));
             }
 
             BeginAnimation();
@@ -176,7 +228,7 @@ namespace Tomato
             }
             else if (e.Key == Key.Home)
             {
-                Value = 0;
+                SetFromInput(0);
                 e.Handled = true;
             }
             else if ((e.Key >= Key.D0 && e.Key <= Key.D9) || (e.Key >= Key.NumPad0 && e.Key <= Key.NumPad9))
@@ -187,7 +239,7 @@ namespace Tomato
                 digits += d.ToString();
                 digitTime = DateTime.UtcNow;
                 int number = int.Parse(digits);
-                Value = number < Limit ? number : d;
+                SetFromInput(number < Limit ? number : d);
                 e.Handled = true;
             }
 
@@ -196,15 +248,51 @@ namespace Tomato
 
         public void Settle()
         {
+            dragging = false;
+            ReleaseMouseCapture();
             target = Math.Round(target);
             position = target;
+            detents.Reset(position);
+            motionVelocity = 0;
             EndAnimation();
             Notify();
             InvalidateVisual();
         }
 
+        void SetFromInput(int value)
+        {
+            int old = Value;
+            Value = value;
+            if (old != Value)
+                EmitDetent();
+        }
+
+        void Feedback()
+        {
+            if (detents.Move(position))
+                EmitDetent();
+        }
+
+        void EmitDetent()
+        {
+            if (!IsEnabled)
+                return;
+            if (DetentCrossed != null)
+                DetentCrossed(this, EventArgs.Empty);
+        }
+
         void BeginAnimation()
         {
+            if (!SystemParameters.ClientAreaAnimation)
+            {
+                position = target;
+                motionVelocity = 0;
+                Feedback();
+                EndAnimation();
+                InvalidateVisual();
+                return;
+            }
+
             if (animating)
                 return;
             animating = true;
@@ -220,10 +308,12 @@ namespace Tomato
             long now = Stopwatch.GetTimestamp();
             double dt = Math.Min(.1, (now - previous) / (double)Stopwatch.Frequency);
             previous = now;
-            position += (target - position) * (1 - Math.Exp(-20 * dt));
-            if (Math.Abs(target - position) < .003)
+            WheelMotion.Advance(ref position, ref motionVelocity, target, dt);
+            Feedback();
+            if (Math.Abs(target - position) < .0008 && Math.Abs(motionVelocity) < .02)
             {
                 position = target;
+                motionVelocity = 0;
                 EndAnimation();
             }
 
@@ -275,7 +365,7 @@ namespace Tomato
             {
                 get
                 {
-                    return false;
+                    return !wheel.IsEnabled;
                 }
             }
 
@@ -321,9 +411,11 @@ namespace Tomato
 
             public void SetValue(double value)
             {
+                if (!wheel.IsEnabled)
+                    throw new InvalidOperationException("计时过程中不能编辑时间");
                 if (value < 0 || value >= wheel.Limit)
                     throw new ArgumentOutOfRangeException("value");
-                wheel.Value = (int)value;
+                wheel.SetFromInput((int)value);
             }
         }
     }

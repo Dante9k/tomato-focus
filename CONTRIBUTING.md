@@ -20,4 +20,6 @@
 
 不要提交本机状态 XML、调试符号、构建输出、日志、账号资料、令牌或签名证书。截图只截取应用自身，避免桌面私人内容。
 
+网站构建使用 `./scripts/build-website.ps1`，包含正式程序、安装器与网站白名单校验；可独立运行 `./scripts/check-website-package.ps1` 检查网站包。浏览器验证依赖及步骤见 `website/README.md`。音效重制和宣传片制作是可选开发任务，依赖分别列在 `scripts/requirements-audio.txt` 与 `marketing/xiaohongshu/requirements.txt`，建议安装在仓库外的 Python 虚拟环境中；正式应用构建不需要 Python 或 Node.js。
+
 发布包由 `VERSION` 指定版本；变更版本时同步更新 `AssemblyInfo.cs` 和 `CHANGELOG.md`。企业签名证书不得放入仓库，签名应在受控发布环境完成。

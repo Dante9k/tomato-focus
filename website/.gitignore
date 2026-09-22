@@ -1,0 +1,6 @@
+downloads/*
+!downloads/.gitkeep
+deploy/local/
+assets/
+MANIFEST.sha256
+release.js

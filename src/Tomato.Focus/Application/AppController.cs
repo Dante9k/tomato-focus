@@ -16,6 +16,8 @@ namespace Tomato
         readonly StateStore store;
         readonly Preferences preferences;
         readonly Countdown clock = new Countdown();
+        readonly WheelFeedback wheelFeedback = new WheelFeedback();
+        readonly ThrowFeedback throwFeedback = new ThrowFeedback();
         readonly DispatcherTimer ticker = new DispatcherTimer
         {
             Interval = TimeSpan.FromMilliseconds(200)
@@ -31,6 +33,7 @@ namespace Tomato
         SoundPlayer player;
         MemoryStream sound;
         public TomatoWindow Window { get; private set; }
+        public SettingsWindow Settings { get; private set; }
         public bool Exiting { get; private set; }
 
         public bool Sound
@@ -39,6 +42,89 @@ namespace Tomato
             {
                 return preferences.Sound;
             }
+        }
+
+        public bool WheelSound
+        {
+            get
+            {
+                return preferences.WheelSoundEnabled;
+            }
+        }
+
+        public bool Haptics
+        {
+            get
+            {
+                return preferences.Haptics;
+            }
+        }
+
+        public bool EffectsSound
+        {
+            get
+            {
+                return preferences.EffectsSound ?? preferences.Sound;
+            }
+        }
+
+        public bool EffectsAudioReady
+        {
+            get
+            {
+                return throwFeedback.AudioReady;
+            }
+        }
+
+        public bool EffectsAudioActive
+        {
+            get
+            {
+                return throwFeedback.IsActive;
+            }
+        }
+
+        public void ToggleEffectsSound()
+        {
+            preferences.EffectsSound = !EffectsSound;
+            if (IsThrowing && EffectsSound)
+                throwFeedback.Start();
+            else
+                throwFeedback.Stop();
+            Save();
+        }
+
+        public bool HapticsAvailable
+        {
+            get
+            {
+                return wheelFeedback.HapticsAvailable;
+            }
+        }
+
+        public void ToggleWheelSound()
+        {
+            preferences.WheelSound = !WheelSound;
+            StopWheelFeedback();
+            Save();
+        }
+
+        public void ToggleHaptics()
+        {
+            preferences.Haptics = !Haptics;
+            StopWheelFeedback();
+            Save();
+        }
+
+        public void WheelTick()
+        {
+            if (initialized && Phase == TimerPhase.Editing && !IsThrowing && Window.IsVisible)
+                wheelFeedback.Tick(WheelSound, Haptics);
+        }
+
+        public void StopWheelFeedback()
+        {
+            wheelFeedback.Stop();
         }
 
         public TimerPhase Phase
@@ -70,6 +156,9 @@ namespace Tomato
             this.app = app;
             store = new StateStore(dataPath);
             preferences = store.Read();
+            // Resolve the legacy sound preference once, before independently toggling either sound.
+            preferences.WheelSound = preferences.WheelSoundEnabled;
+            preferences.EffectsSound = EffectsSound;
             art = Art.TomatoImage(880);
             smallArt = Art.TomatoImage(192);
             Window = new TomatoWindow(this, art);
@@ -95,7 +184,7 @@ namespace Tomato
                 if (clock.Phase == TimerPhase.Ringing)
                     BeginAlarm(false);
                 else
-                    Window.Hide();
+                    Window.ShowCountdown(clock.Remaining(DateTime.UtcNow));
             }
         }
 
@@ -122,9 +211,10 @@ namespace Tomato
 
         public void Start()
         {
+            StopWheelFeedback();
             if (clock.Phase == TimerPhase.Running)
             {
-                Window.Hide();
+                Show();
                 return;
             }
 
@@ -144,7 +234,8 @@ namespace Tomato
             clock.Start(Window.Duration, DateTime.UtcNow);
             preferences.Seconds = Window.Duration;
             Save();
-            Window.Hide();
+            Window.ShowCountdown(clock.Remaining(DateTime.UtcNow));
+            Window.Show();
             UpdateTray();
         }
 
@@ -162,7 +253,7 @@ namespace Tomato
             {
                 UpdateTray();
                 if (Window.IsVisible)
-                    Window.ShowCountdown(Format(clock.Remaining(DateTime.UtcNow)));
+                    Window.ShowCountdown(clock.Remaining(DateTime.UtcNow));
             }
         }
 
@@ -189,16 +280,13 @@ namespace Tomato
         {
             if (overlay != null)
                 return;
+            Window.Settle();
+            StopWheelFeedback();
             preview = isPreview;
-            editorLeft = Window.Left;
+            editorLeft = Window.ExpandedLeft;
             editorTop = Window.Top;
-            var screen = Forms.Screen.FromHandle(new WindowInteropHelper(Window).Handle);
             var matrix = source.CompositionTarget.TransformFromDevice;
-            var work = screen.WorkingArea;
-            Point corner = matrix.Transform(new Point(work.Right, work.Top));
             Window.SetAlarm(true);
-            Window.Left = corner.X - Window.Width - 18;
-            Window.Top = corner.Y + 8;
             var desktop = Forms.SystemInformation.VirtualScreen;
             var p = matrix.Transform(new Point(desktop.Left, desktop.Top));
             var size = matrix.Transform(new Vector(desktop.Width, desktop.Height));
@@ -206,6 +294,14 @@ namespace Tomato
             Point stem = Window.ThrowOrigin;
             Point origin = new Point(Window.Left + stem.X - bounds.Left, Window.Top + stem.Y - bounds.Top);
             overlay = new ThrowWindow(smallArt, bounds, origin);
+            overlay.Surface.OriginProvider = delegate
+            {
+                // Convert through physical screen coordinates, including the current restore scale.
+                return overlay.PointFromScreen(Window.PointToScreen(Window.ThrowOrigin));
+            };
+            overlay.Surface.SoundCue += OnFlightSound;
+            if (EffectsSound)
+                throwFeedback.Start();
             overlay.Show();
             Window.Show();
             Window.Topmost = false;
@@ -223,6 +319,12 @@ namespace Tomato
             StopAlarmCore(true);
         }
 
+        void OnFlightSound(object sender, FlightSoundEventArgs e)
+        {
+            if (EffectsSound && IsThrowing)
+                throwFeedback.Play(e);
+        }
+
         public void StopAlarmForDrag()
         {
             StopAlarmCore(false);
@@ -232,6 +334,8 @@ namespace Tomato
         {
             if (!IsThrowing)
                 return;
+            overlay.Surface.SoundCue -= OnFlightSound;
+            throwFeedback.Stop();
             overlay.Close();
             overlay = null;
             preview = false;
@@ -258,6 +362,8 @@ namespace Tomato
 
         public void Cancel()
         {
+            Window.Settle();
+            StopWheelFeedback();
             StopAlarm();
             clock.Stop();
             Window.ShowEditor();
@@ -269,11 +375,11 @@ namespace Tomato
 
         public void Show()
         {
+            if (clock.Phase == TimerPhase.Running)
+                Window.ShowCountdown(clock.Remaining(DateTime.UtcNow));
             Window.Show();
             ClampWindow();
             Window.Activate();
-            if (clock.Phase == TimerPhase.Running)
-                Window.ShowCountdown(Format(clock.Remaining(DateTime.UtcNow)));
         }
 
         public void ClampWindow()
@@ -297,7 +403,7 @@ namespace Tomato
                 preferences.Seconds = Window.Duration;
             preferences.Active = clock.Phase != TimerPhase.Editing;
             preferences.DeadlineTicks = clock.DeadlineUtc.Ticks;
-            preferences.Left = IsThrowing ? editorLeft : Window.Left;
+            preferences.Left = IsThrowing ? editorLeft : Window.ExpandedLeft;
             preferences.Top = IsThrowing ? editorTop : Window.Top;
             if (!store.Write(preferences) && tray != null)
                 tray.Text = "朱果 · 设置保存失败，本次计时继续";
@@ -331,29 +437,50 @@ namespace Tomato
 
             tray.Visible = true;
             tray.Text = "朱果 · 番茄钟";
-            var menu = new Forms.ContextMenuStrip();
-            menu.Items.Add("显示番茄", null, delegate
+            tray.MouseUp += delegate (object sender, Forms.MouseEventArgs e)
             {
-                Show();
-            });
-            menu.Items.Add("取消计时 / 停止提醒", null, delegate
-            {
-                Cancel();
-            });
-            menu.Items.Add("预览投掷 · 8 秒", null, delegate
-            {
-                Preview();
-            });
-            menu.Items.Add(new Forms.ToolStripSeparator());
-            menu.Items.Add("退出朱果", null, delegate
-            {
-                Quit();
-            });
-            tray.ContextMenuStrip = menu;
+                if (e.Button == Forms.MouseButtons.Right)
+                    app.Dispatcher.BeginInvoke(new Action(OpenSettings));
+            };
             tray.DoubleClick += delegate
             {
                 Show();
             };
+        }
+
+        public void OpenSettings()
+        {
+            if (Settings != null)
+            {
+                Settings.Activate();
+                return;
+            }
+
+            var pointer = Forms.Cursor.Position;
+            var screen = Forms.Screen.FromPoint(pointer);
+            var matrix = source.CompositionTarget.TransformFromDevice;
+            var area = screen.WorkingArea;
+            Point corner = matrix.Transform(new Point(area.Left, area.Top));
+            Point limit = matrix.Transform(new Point(area.Right, area.Bottom));
+            Point anchor = matrix.Transform(new Point(pointer.X, pointer.Y));
+            var panel = new SettingsWindow(this, smallArt);
+            Settings = panel;
+            panel.Closed += delegate
+            {
+                if (Settings == panel)
+                    Settings = null;
+            };
+            panel.MaxHeight = Math.Max(160, limit.Y - corner.Y - 16);
+            panel.Left = Math.Max(corner.X + 8, Math.Min(anchor.X - panel.Width + 24, limit.X - panel.Width - 8));
+            panel.Top = corner.Y + 8;
+            panel.Opacity = 0;
+            panel.Show();
+            panel.UpdateLayout();
+            panel.Top = Math.Max(corner.Y + 8, Math.Min(anchor.Y - panel.ActualHeight - 8, limit.Y - panel.ActualHeight - 8));
+            panel.Opacity = 1;
+            if (SystemParameters.ClientAreaAnimation)
+                panel.BeginAnimation(UIElement.OpacityProperty, new System.Windows.Media.Animation.DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(140)));
+            panel.Activate();
         }
 
         void UpdateTray()
@@ -430,6 +557,11 @@ namespace Tomato
 
         public void Quit()
         {
+            if (Settings != null)
+                Settings.Close();
+            Window.Settle();
+            wheelFeedback.Dispose();
+            throwFeedback.Dispose();
             Save();
             Exiting = true;
             ticker.Stop();

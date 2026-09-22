@@ -15,10 +15,10 @@ namespace Tomato.Tests
                 return Verification.Run();
             if (mode == "--render-preview")
                 return Verification.Render();
-            if (mode != "--smoke-test")
+            if (mode != "--smoke-test" && mode != "--focus-smoke" && mode != "--settings-smoke")
             {
                 Console.Error.WriteLine("Unknown mode: " + mode);
-                Console.Error.WriteLine("Usage: Tomato.Verify.exe [--self-test|--render-preview|--smoke-test]");
+                Console.Error.WriteLine("Usage: Tomato.Verify.exe [--self-test|--render-preview|--smoke-test|--focus-smoke|--settings-smoke]");
                 return 2;
             }
 
@@ -39,7 +39,12 @@ namespace Tomato.Tests
             {
                 controller = new AppController(application, Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "smoke-state.xml"));
                 controller.Launch(false);
-                Verification.Smoke(controller);
+                if (mode == "--settings-smoke")
+                    Verification.SettingsSmoke(controller);
+                else if (mode == "--focus-smoke")
+                    Verification.FocusSmoke(controller);
+                else
+                    Verification.Smoke(controller);
                 application.Run();
                 return Verification.SmokeExitCode;
             }

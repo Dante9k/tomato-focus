@@ -1,7 +1,11 @@
+[CmdletBinding()]
+param([string]$Version)
+
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 $projectRoot = Split-Path $PSScriptRoot -Parent
-$version = (Get-Content -LiteralPath (Join-Path $projectRoot 'VERSION') -Raw).Trim()
+if ([string]::IsNullOrWhiteSpace($Version)) { $Version = (Get-Content -LiteralPath (Join-Path $projectRoot 'VERSION') -Raw).Trim() }
+if ($version -notmatch '^\d+\.\d+\.\d+$') { throw 'Invalid version.' }
 $archive = Join-Path $projectRoot "dist\TomatoFocus-$version-win-x64.zip"
 $expected = @('Tomato.exe', 'Tomato.exe.config', 'README.md', 'LICENSE', 'CHANGELOG.md', 'VALIDATION.md', 'preview.png') | Sort-Object
 Add-Type -AssemblyName System.IO.Compression.FileSystem

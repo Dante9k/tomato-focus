@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>朱果 · 小红书宣传片</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f6f3eb;color:#203c31;font-family:"Microsoft YaHei",sans-serif}main{max-width:1140px;margin:auto;padding:48px 28px;display:grid;grid-template-columns:minmax(260px,390px) 1fr;gap:60px;align-items:start}video{width:100%;max-height:85vh;border-radius:24px;background:#203c31;box-shadow:0 22px 65px #203c3126}h1{font-size:44px;letter-spacing:-2px;margin:12px 0 24px;line-height:1.25}p{line-height:1.9;color:#6c7d71}small{letter-spacing:3px;color:#e7583f}.tag{font-size:13px;display:inline-block;background:#e3e8d9;padding:7px 12px;border-radius:20px;margin:4px}a{color:inherit;text-underline-offset:5px}.actions{display:flex;flex-wrap:wrap;gap:12px;margin:26px 0}.actions a{background:#203c31;color:#fff7ed;padding:13px 20px;border-radius:12px;text-decoration:none}.actions a:nth-child(2){background:#e7583f}img{max-width:250px;width:100%;border-radius:12px}details{margin-top:24px}summary{cursor:pointer}button{cursor:pointer;border:1px solid #ccd4c5;background:transparent;color:#203c31;border-radius:8px;padding:8px 12px;margin:6px 4px 0 0;font:inherit}footer{font-size:12px;color:#6c7d71;margin-top:28px}@media(max-width:700px){main{display:flex;flex-direction:column;padding:24px;gap:30px}video{max-height:74vh}h1{font-size:36px}}
+</style>
+<main>
+<video id="film" controls playsinline preload="metadata" poster="zhuguo-poster-9x16.jpg"><source src="zhuguo-xiaohongshu-1080x1920.mp4" type="video/mp4">请下载 MP4 播放。</video>
+<section><small>ZHUGUO / THE FOCUS FILM</small><h1>我的桌面，<br>会下番茄雨。</h1><p>从设定时间，到双击开始，再到到点休息。<br>用 36 秒，认识住在桌面上的小番茄。</p><div><span class="tag">1080 × 1920</span><span class="tag">36 秒</span><span class="tag">音乐 / 音效 / 字幕</span></div><div class="actions"><a href="zhuguo-xiaohongshu-1080x1920.mp4" download>下载视频 ↓</a><a href="zhuguo-cover-3x4.jpg" download>下载封面 ↓</a></div><p><a href="发布文案.md">发布文案</a> · <a href="zhuguo-storyboard.jpg">分镜总览</a> · <a href="zhuguo-captions.srt" download>字幕文件</a></p><div aria-label="跳转章节"><button data-time="6.5">调时间</button><button data-time="11.5">双击开始</button><button data-time="19.5">番茄雨</button><button data-time="24.5">停止提醒</button></div><details><summary>查看 3:4 封面</summary><p><img src="zhuguo-cover-3x4.jpg" alt="我的桌面会下番茄雨，小红书封面"></p></details><footer>产品功能演示动画，包含倒计时快进与示意桌面。<br>当前片尾为上线预热文案。素材保存在本机，尚未发布。</footer></section>
+</main>
+<script>document.querySelectorAll('[data-time]').forEach(button=>button.addEventListener('click',()=>{const video=document.getElementById('film');video.currentTime=Number(button.dataset.time);video.play().catch(()=>{});}));</script>
+</html>

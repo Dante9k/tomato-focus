@@ -1,0 +1,24 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tomato.Focus", "src\Tomato.Focus\Tomato.Focus.csproj", "{70818812-B182-4872-95B8-971D6CE0255C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tomato.Focus.Verification", "tests\Tomato.Focus.Verification\Tomato.Focus.Verification.csproj", "{E9E4E8C3-F78B-48F9-A7DE-75BD58D611DE}"
+EndProject
+Global
+    GlobalSection(SolutionConfigurationPlatforms) = preSolution
+        Debug|x64 = Debug|x64
+        Release|x64 = Release|x64
+    EndGlobalSection
+    GlobalSection(ProjectConfigurationPlatforms) = postSolution
+        {70818812-B182-4872-95B8-971D6CE0255C}.Debug|x64.ActiveCfg = Debug|x64
+        {70818812-B182-4872-95B8-971D6CE0255C}.Debug|x64.Build.0 = Debug|x64
+        {70818812-B182-4872-95B8-971D6CE0255C}.Release|x64.ActiveCfg = Release|x64
+        {70818812-B182-4872-95B8-971D6CE0255C}.Release|x64.Build.0 = Release|x64
+        {E9E4E8C3-F78B-48F9-A7DE-75BD58D611DE}.Debug|x64.ActiveCfg = Debug|x64
+        {E9E4E8C3-F78B-48F9-A7DE-75BD58D611DE}.Debug|x64.Build.0 = Debug|x64
+        {E9E4E8C3-F78B-48F9-A7DE-75BD58D611DE}.Release|x64.ActiveCfg = Release|x64
+        {E9E4E8C3-F78B-48F9-A7DE-75BD58D611DE}.Release|x64.Build.0 = Release|x64
+    EndGlobalSection
+EndGlobal

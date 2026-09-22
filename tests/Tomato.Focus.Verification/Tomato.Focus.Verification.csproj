@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition="'$(Configuration)' == ''">Release</Configuration>
+    <Platform Condition="'$(Platform)' == ''">x64</Platform>
+    <ProjectGuid>{E9E4E8C3-F78B-48F9-A7DE-75BD58D611DE}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>Tomato.Tests</RootNamespace>
+    <AssemblyName>Tomato.Verify</AssemblyName>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <PlatformTarget>x64</PlatformTarget>
+    <OutputPath>..\..\build\</OutputPath>
+    <Optimize>true</Optimize>
+    <DebugType>none</DebugType>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <AppConfig>..\..\src\Tomato.Focus\App.config</AppConfig>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Xaml" />
+    <Reference Include="WindowsBase" />
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+    <Compile Include="Program.cs;Verification.cs" />
+    <ProjectReference Include="..\..\src\Tomato.Focus\Tomato.Focus.csproj">
+      <Project>{70818812-B182-4872-95B8-971D6CE0255C}</Project>
+      <Name>Tomato.Focus</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

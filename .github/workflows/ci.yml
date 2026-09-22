@@ -1,0 +1,57 @@
+name: Windows quality
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: quality-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-verify:
+    name: Windows build and verification
+    runs-on: windows-2022
+    timeout-minutes: 15
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - name: Check out source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Verify Visual Studio solution
+        run: ./scripts/build-solution.ps1
+      - name: Build, verify, render and package
+        run: ./package.ps1
+      - name: Check C# formatting
+        run: ./scripts/format-code.ps1 -Check
+      - name: Check archive boundaries
+        run: ./scripts/check-package.ps1
+      - name: Upload portable package
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: tomato-focus-win-x64
+          path: |
+            dist/*.zip
+            dist/*.sha256
+          if-no-files-found: error
+          retention-days: 14
+      - name: Upload verification evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: verification-evidence
+          path: |
+            build/test-results.txt
+            build/render-results.txt
+            build/tomato-widget.png
+            build/tomato-alarm.png
+          if-no-files-found: warn
+          retention-days: 7

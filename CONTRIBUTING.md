@@ -1,0 +1,23 @@
+# 贡献指南
+
+本项目目前保留所有权利，提交代码前请先与维护者确认贡献安排，参阅 [LICENSE](LICENSE)。
+
+## 开发环境
+
+- Windows 10 / 11 x64 与 .NET Framework 4.8。
+- PowerShell 7 推荐；基础构建脚本兼容 Windows PowerShell 5.1。
+- Visual Studio 2022 与 .NET Framework 4.8 开发工具可选；打开 `Tomato.Focus.sln`。
+- 不需要第三方 NuGet 包或网络连接即可使用脚本构建。
+
+## 工作流程
+
+1. 从默认分支创建独立功能分支，变更限定于一个明确目的。
+2. 遵守 `.editorconfig`，使用 PowerShell 7 运行 `./scripts/format-code.ps1` 统一格式。领域逻辑不直接访问窗口、文件系统或系统托盘。
+3. 运行 `./build.ps1 -Test`；界面变化再运行 `./build/Tomato.Verify.exe --render-preview` 并检查图片。
+4. 改动窗口、输入或生命周期时，在可交互桌面运行 `./build/Tomato.Verify.exe --smoke-test`，再进行相关鼠标、键盘手工验收。
+5. 运行 `./package.ps1`，检查压缩包仅包含清单内的文件。
+6. 提交 PR，说明具体行为变化、验证证据和限制。提交消息推荐 `feat:`、`fix:`、`refactor:`、`docs:` 或 `chore:`。
+
+不要提交本机状态 XML、调试符号、构建输出、日志、账号资料、令牌或签名证书。截图只截取应用自身，避免桌面私人内容。
+
+发布包由 `VERSION` 指定版本；变更版本时同步更新 `AssemblyInfo.cs` 和 `CHANGELOG.md`。企业签名证书不得放入仓库，签名应在受控发布环境完成。

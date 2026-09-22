@@ -1,0 +1,23 @@
+name: 问题报告
+description: 报告可复现的问题，不要附带敏感资料。
+title: "[Bug] "
+body:
+  - type: textarea
+    id: steps
+    attributes:
+      label: 重现步骤
+      description: 操作步骤、预期结果和实际结果。
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: 环境
+      description: 程序版本、Windows 版本、屏幕分辨率、缩放比例和显示器数量。
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: 补充信息
+      description: 仅提供已移除个人信息的应用截图或错误摘要。

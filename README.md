@@ -1,5 +1,7 @@
 # 朱果 · Tomato Focus
 
+[![Windows quality](https://github.com/Dante9k/tomato-focus/actions/workflows/ci.yml/badge.svg)](https://github.com/Dante9k/tomato-focus/actions/workflows/ci.yml)
+
 **一颗番茄，一段完整的专注。**
 
 适用于 Windows 的透明桌面番茄钟。圆润软陶风格、细腻柔光与紧凑尺寸，中央时间滚轮支持惯性滑动；时间到后，番茄从桌面右上角持续抛出，用轻巧的动画提醒你休息。
@@ -18,6 +20,8 @@
 主窗口约 **317 × 328 个逻辑像素**。可设置 1 秒至 23:59:59；滚轮循环吸附到完整数字。提示音在到期时播放一次，正式动画持续到手动停止。
 
 ## 运行条件
+
+最新验证包可从 [Windows 自动构建](https://github.com/Dante9k/tomato-focus/actions/workflows/ci.yml) 的成功记录中下载 `tomato-focus-win-x64` 产物。
 
 - Windows 10 / 11，x64，.NET Framework 4.8。
 - 解压便携包，双击 `Tomato.exe`，无需安装或管理员权限。

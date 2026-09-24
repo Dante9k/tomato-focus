@@ -11,10 +11,10 @@ using System.Runtime.InteropServices.ComTypes;
 using System.Text;
 using System.Windows.Forms;
 
-[assembly: AssemblyTitle("朱果 · 安装程序")]
-[assembly: AssemblyDescription("朱果 Tomato Focus Windows 安装程序")]
-[assembly: AssemblyProduct("朱果 · Tomato Focus")]
-[assembly: AssemblyCopyright("朱果 · 保留所有权利")]
+[assembly: AssemblyTitle("Tommi · 安装程序")]
+[assembly: AssemblyDescription("Tommi Windows 安装程序")]
+[assembly: AssemblyProduct("Tommi")]
+[assembly: AssemblyCopyright("Tommi · 保留所有权利")]
 
 internal static class Setup
 {
@@ -73,7 +73,7 @@ internal static class Setup
             }
             return 0;
         }
-        catch (Exception ex) { if (args.Length == 0) MessageBox.Show(ex.Message, "朱果安装程序", MessageBoxButtons.OK, MessageBoxIcon.Error); return 1; }
+        catch (Exception ex) { if (args.Length == 0) MessageBox.Show(ex.Message, "Tommi安装程序", MessageBoxButtons.OK, MessageBoxIcon.Error); return 1; }
     }
 
     private static void CreateHandles(Control control)
@@ -100,7 +100,7 @@ internal static class Setup
         var red = Color.FromArgb(207, 59, 40);
         var form = new Form
         {
-            Text = "朱果安装程序",
+            Text = "Tommi安装程序",
             Font = new Font("Microsoft YaHei UI", 10),
             AutoScaleDimensions = new SizeF(96, 96),
             AutoScaleMode = AutoScaleMode.Dpi,
@@ -117,12 +117,12 @@ internal static class Setup
         using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("Brand.Logo.png"))
         using (var image = Image.FromStream(stream)) logo.Image = new Bitmap(image);
         side.Controls.Add(logo);
-        side.Controls.Add(TextLabel("朱果", 43, 221, 165, 50, 28, ink, true));
-        side.Controls.Add(TextLabel("TOMATO FOCUS", 47, 279, 175, 24, 10, muted));
+        side.Controls.Add(TextLabel("Tommi", 36, 221, 200, 54, 26, ink, true));
+        side.Controls.Add(TextLabel("FOCUS TIMER", 43, 279, 190, 24, 10, muted));
         side.Controls.Add(TextLabel("一颗番茄，\n一段完整的专注。", 45, 331, 176, 66, 12, muted));
         side.Controls.Add(TextLabel("WINDOWS 10 / 11 · x64", 45, 452, 195, 22, 9, muted));
         form.Controls.Add(side);
-        var title = TextLabel("欢迎安装朱果", 292, 49, 425, 46, 23, ink, true);
+        var title = TextLabel("欢迎安装Tommi", 292, 49, 425, 46, 23, ink, true);
         var description = TextLabel("把时间，留给喜欢的事。\n离线使用，无需登录。", 295, 108, 410, 62, 11, muted);
         var versionLabel = TextLabel("版本 " + version + "    /    桌面番茄钟", 295, 182, 410, 28, 10, muted);
         var separator = new Panel { Location = new Point(296, 227), Size = new Size(412, 1), BackColor = Color.FromArgb(232, 234, 238) };
@@ -133,7 +133,7 @@ internal static class Setup
         browse.FlatAppearance.BorderColor = Color.FromArgb(220, 225, 232);
         browse.Click += delegate
         {
-            using (var dialog = new FolderBrowserDialog { Description = "选择用于朱果的空文件夹，也可以新建文件夹。", ShowNewFolderButton = true })
+            using (var dialog = new FolderBrowserDialog { Description = "选择用于Tommi的空文件夹，也可以新建文件夹。", ShowNewFolderButton = true })
             {
                 try
                 {
@@ -150,7 +150,7 @@ internal static class Setup
         };
         var pathHint = TextLabel("可输入完整路径，或选择一个专用空文件夹。", 295, 320, 415, 23, 9, muted);
         var desktop = new CheckBox { Text = "创建桌面快捷方式", Checked = true, Location = new Point(296, 352), AutoSize = true, TabIndex = 2 };
-        var status = TextLabel("请选择有写入权限的位置。不添加开机自启。", 295, 387, 415, 35, 9, muted);
+        var status = TextLabel("首次打开默认随登录启动，可在 Tommi 设置中关闭。", 295, 387, 415, 35, 9, muted);
         var install = new Button { Name = "InstallButton", Text = "开始安装", Location = new Point(558, 431), Size = new Size(150, 43), BackColor = red, ForeColor = Color.White, FlatStyle = FlatStyle.Flat, Cursor = Cursors.Hand, TabIndex = 3 };
         install.FlatAppearance.BorderSize = 0;
         install.FlatAppearance.MouseOverBackColor = Color.FromArgb(181, 47, 31);
@@ -166,17 +166,17 @@ internal static class Setup
             browse.Enabled = false;
             try
             {
-                if (isRunning()) throw new IOException("请先从托盘退出朱果，再点击安装。安装程序不会强制关闭应用。");
+                if (isRunning()) throw new IOException("请先从托盘退出Tommi，再点击安装。安装程序不会强制关闭应用。");
                 target = NormalizeTarget(path.Text);
                 installAction(target, desktop.Checked);
                 path.Text = target;
                 installed = true;
-                title.Text = "朱果已准备就绪";
-                description.Text = "从开始菜单打开「朱果番茄钟」，\n开始你的下一段专注。";
+                title.Text = "Tommi已准备就绪";
+                description.Text = "从开始菜单打开「Tommi」，\n开始你的下一段专注。";
                 install.Text = "完成";
                 desktop.Enabled = false;
                 cancel.Visible = false;
-                status.Text = "卸载时退出朱果，删除安装文件夹及快捷方式即可。";
+                status.Text = "卸载前关闭登录启动，再退出并删除安装文件夹。";
             }
             catch (UnauthorizedAccessException) { reportError(new IOException("无法写入所选位置。请使用“浏览”选择有写入权限的文件夹。")); }
             catch (Exception ex) { reportError(ex); }
@@ -279,12 +279,12 @@ internal static class Setup
     private static void Shortcut(string folder, string target)
     {
         Directory.CreateDirectory(folder);
-        var linkPath = Path.Combine(folder, "朱果番茄钟.lnk");
+        var linkPath = Path.Combine(folder, "Tommi.lnk");
         if (File.Exists(linkPath))
         {
             var backupRoot = Path.Combine(Path.GetDirectoryName(target), "shortcut-backups", DateTime.UtcNow.ToString("yyyyMMdd-HHmmss-fffffff"));
             Directory.CreateDirectory(backupRoot);
-            File.Copy(linkPath, Path.Combine(backupRoot, "朱果番茄钟.lnk"));
+            File.Copy(linkPath, Path.Combine(backupRoot, "Tommi.lnk"));
         }
         var link = (IShellLinkW)new ShellLink();
         try
@@ -300,6 +300,14 @@ internal static class Setup
         if (!String.Equals(saved[0], Path.Combine(target, "Tomato.exe"), StringComparison.OrdinalIgnoreCase) ||
             !String.Equals(saved[1], target, StringComparison.OrdinalIgnoreCase))
             throw new IOException("快捷方式校验失败。安装文件已保留，请检查所选路径后重试。");
+        // Retire only the known legacy app link, after the new link has been verified.
+        string legacy = Path.Combine(folder, "朱果番茄钟.lnk");
+        if (File.Exists(legacy) && String.Equals(Path.GetFileName(ReadShortcut(legacy)[0]), "Tomato.exe", StringComparison.OrdinalIgnoreCase))
+        {
+            string backup = Path.Combine(Path.GetDirectoryName(target), "shortcut-backups", Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(backup);
+            File.Move(legacy, Path.Combine(backup, Path.GetFileName(legacy)));
+        }
     }
 
     private static string[] ReadShortcut(string path)

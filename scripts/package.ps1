@@ -7,7 +7,7 @@ if ($render.ExitCode -ne 0) { throw 'Preview rendering failed.' }
 
 $version = (Get-Content -LiteralPath (Join-Path $projectRoot 'VERSION') -Raw).Trim()
 if ($version -notmatch '^\d+\.\d+\.\d+$') { throw 'VERSION must contain a semantic version.' }
-$releaseName = "TomatoFocus-$version-win-x64"
+$releaseName = "Tommi-$version-win-x64"
 $releasePath = Join-Path $projectRoot "dist\$releaseName"
 New-Item -ItemType Directory -Force -Path $releasePath | Out-Null
 foreach ($name in @('Tomato.exe', 'Tomato.exe.config')) { Copy-Item -LiteralPath (Join-Path $projectRoot "build\$name") -Destination $releasePath -Force }

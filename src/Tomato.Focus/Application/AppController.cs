@@ -15,6 +15,7 @@ namespace Tomato
         readonly Application app;
         readonly StateStore store;
         readonly Preferences preferences;
+        readonly LoginStartup loginStartup;
         readonly Countdown clock = new Countdown();
         readonly WheelFeedback wheelFeedback = new WheelFeedback();
         readonly ThrowFeedback throwFeedback = new ThrowFeedback();
@@ -151,11 +152,47 @@ namespace Tomato
             }
         }
 
-        public AppController(Application app, string dataPath)
+        public bool LaunchAtLogin
+        {
+            get
+            {
+                return loginStartup != null && loginStartup.Configured;
+            }
+        }
+
+        public bool StartupAvailable
+        {
+            get
+            {
+                return loginStartup != null;
+            }
+        }
+
+        public string StartupStatus
+        {
+            get
+            {
+                return loginStartup != null && loginStartup.Error != null ? loginStartup.Error : "Windows“启动应用”的设置也会生效。";
+            }
+        }
+
+        public void ToggleLaunchAtLogin()
+        {
+            if (loginStartup != null)
+            {
+                loginStartup.Refresh();
+                loginStartup.SetEnabled(!loginStartup.Configured);
+                Save();
+            }
+        }
+
+        public AppController(Application app, string dataPath, IStartupRegistration startupRegistration = null)
         {
             this.app = app;
             store = new StateStore(dataPath);
             preferences = store.Read();
+            if (startupRegistration != null)
+                loginStartup = new LoginStartup(preferences, startupRegistration, System.Reflection.Assembly.GetExecutingAssembly().Location);
             // Resolve the legacy sound preference once, before independently toggling either sound.
             preferences.WheelSound = preferences.WheelSoundEnabled;
             preferences.EffectsSound = EffectsSound;
@@ -163,7 +200,7 @@ namespace Tomato
             smallArt = Art.TomatoImage(192);
             Window = new TomatoWindow(this, art);
             Window.Duration = Math.Max(1, Math.Min(86399, preferences.Seconds));
-            Window.Left = double.IsNaN(preferences.Left) ? SystemParameters.WorkArea.Right - Window.Width - 50 : preferences.Left;
+            Window.Left = double.IsNaN(preferences.Left) ? SystemParameters.WorkArea.Right - Window.Width - 50 : preferences.Left + 250 - Window.Width;
             Window.Top = double.IsNaN(preferences.Top) ? SystemParameters.WorkArea.Top + 90 : preferences.Top;
             ticker.Tick += Tick;
             initialized = true;
@@ -185,6 +222,12 @@ namespace Tomato
                     BeginAlarm(false);
                 else
                     Window.ShowCountdown(clock.Remaining(DateTime.UtcNow));
+            }
+
+            if (loginStartup != null)
+            {
+                loginStartup.Initialize();
+                Save();
             }
         }
 
@@ -351,7 +394,7 @@ namespace Tomato
             Window.ShowEditor();
             if (restorePosition)
             {
-                Window.Left = editorLeft;
+                Window.Left = editorLeft + 250 - Window.Width;
                 Window.Top = editorTop;
                 ClampWindow();
             }
@@ -406,7 +449,7 @@ namespace Tomato
             preferences.Left = IsThrowing ? editorLeft : Window.ExpandedLeft;
             preferences.Top = IsThrowing ? editorTop : Window.Top;
             if (!store.Write(preferences) && tray != null)
-                tray.Text = "朱果 · 设置保存失败，本次计时继续";
+                tray.Text = "Tommi · 设置保存失败，本次计时继续";
         }
 
         void CreateTray()
@@ -436,7 +479,7 @@ namespace Tomato
             }
 
             tray.Visible = true;
-            tray.Text = "朱果 · 番茄钟";
+            tray.Text = "Tommi · 番茄钟";
             tray.MouseUp += delegate (object sender, Forms.MouseEventArgs e)
             {
                 if (e.Button == Forms.MouseButtons.Right)
@@ -450,6 +493,8 @@ namespace Tomato
 
         public void OpenSettings()
         {
+            if (loginStartup != null)
+                loginStartup.Refresh();
             if (Settings != null)
             {
                 Settings.Activate();
@@ -486,7 +531,7 @@ namespace Tomato
         void UpdateTray()
         {
             if (tray != null)
-                tray.Text = clock.Phase == TimerPhase.Running ? "朱果 · 专注剩余 " + Format(clock.Remaining(DateTime.UtcNow)) : IsThrowing ? "朱果 · 时间到了，拖动番茄结束提醒" : "朱果 · 番茄钟";
+                tray.Text = clock.Phase == TimerPhase.Running ? "Tommi · 专注剩余 " + Format(clock.Remaining(DateTime.UtcNow)) : IsThrowing ? "Tommi · 时间到了，拖动番茄结束提醒" : "Tommi · 番茄钟";
         }
 
         IntPtr Hook(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)

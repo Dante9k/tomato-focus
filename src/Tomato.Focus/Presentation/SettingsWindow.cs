@@ -13,7 +13,8 @@ namespace Tomato
     public sealed class SettingsWindow : Window
     {
         readonly AppController controller;
-        readonly ToggleButton sound, wheel, effects, haptics;
+        readonly ToggleButton sound, wheel, effects, haptics, startup;
+        readonly TextBlock startupStatus;
         bool closing;
         static readonly ControlTemplate ActionTemplate = (ControlTemplate)XamlReader.Parse(@"
 <ControlTemplate xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation' TargetType='Button'>
@@ -44,7 +45,7 @@ namespace Tomato
         public SettingsWindow(AppController controller, BitmapSource art)
         {
             this.controller = controller;
-            Title = "朱果 · 专注偏好";
+            Title = "Tommi · 专注偏好";
             Width = 352;
             SizeToContent = SizeToContent.Height;
             WindowStyle = WindowStyle.None;
@@ -88,7 +89,7 @@ namespace Tomato
             header.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
             header.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(56) });
             var brand = new StackPanel();
-            brand.Children.Add(Text("朱果", 23, "#F4F3E7", true));
+            brand.Children.Add(Text("Tommi", 23, "#F4F3E7", true));
             brand.Children.Add(Text("专注，有自己的节奏。", 11, "#A7B7A2"));
             header.Children.Add(brand);
             var icon = new Image
@@ -124,6 +125,12 @@ namespace Tomato
             effects = AddToggle(body, "投掷与落地声", "ToggleEffects", controller.ToggleEffectsSound);
             if (controller.HapticsAvailable)
                 haptics = AddToggle(body, "轻触反馈", "ToggleHaptics", controller.ToggleHaptics);
+            startup = AddToggle(body, "登录时启动 Tommi", "ToggleStartup", controller.ToggleLaunchAtLogin);
+            startup.IsEnabled = controller.StartupAvailable;
+            startupStatus = Text(controller.StartupStatus, 10, "#A7B7A2");
+            startupStatus.TextWrapping = TextWrapping.Wrap;
+            startupStatus.Margin = new Thickness(0, 0, 0, 8);
+            body.Children.Add(startupStatus);
             Divider(body);
             var preview = Action("试试番茄雨   ↗", "PreviewThrow", delegate
             {
@@ -159,7 +166,7 @@ namespace Tomato
             cancel.IsEnabled = controller.Phase != TimerPhase.Editing || controller.IsThrowing;
             cancel.Background = Brushes.Transparent;
             cancel.Foreground = Art.Brush("#B5C0AF");
-            var quit = Action("退出朱果", "QuitTomato", delegate
+            var quit = Action("退出Tommi", "QuitTomato", delegate
             {
                 Close();
                 controller.Quit();
@@ -246,6 +253,8 @@ namespace Tomato
             sound.IsChecked = controller.Sound;
             wheel.IsChecked = controller.WheelSound;
             effects.IsChecked = controller.EffectsSound;
+            startup.IsChecked = controller.LaunchAtLogin;
+            startupStatus.Text = controller.StartupStatus;
             if (haptics != null)
                 haptics.IsChecked = controller.Haptics;
         }

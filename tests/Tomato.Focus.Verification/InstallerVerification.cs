@@ -66,9 +66,12 @@ namespace Tomato.Tests
         private static void VerifyShortcut(string folder, string target)
         {
             Call("Shortcut", folder, target);
-            string path = Path.Combine(folder, "朱果番茄钟.lnk");
+            string path = Path.Combine(folder, "Tommi.lnk");
             byte[] original = File.ReadAllBytes(path);
+            string legacy = Path.Combine(folder, "朱果番茄钟.lnk");
+            File.Copy(path, legacy);
             Call("Shortcut", folder, target);
+            Require(!File.Exists(legacy), "Legacy app shortcut was not retired after verifying Tommi.lnk.");
             string backupRoot = Path.Combine(Path.GetDirectoryName(target), "shortcut-backups");
             Require(Directory.GetFiles(backupRoot, "*.lnk", SearchOption.AllDirectories).Any(file => File.ReadAllBytes(file).SequenceEqual(original)), "Existing shortcut was not backed up.");
             var saved = (string[])Call("ReadShortcut", path);
@@ -117,7 +120,7 @@ namespace Tomato.Tests
                 });
                 Require(File.ReadAllText(fileTarget) == "keep", "Existing file was modified.");
                 log.AppendLine("PASS invalid, relative, root, network, device, long and file paths rejected");
-                string custom = Path.Combine(root, "自定义 目录", "Tomato Focus");
+                string custom = Path.Combine(root, "自定义 目录", "Tommi");
                 Call("InstallFiles", bytes, custom);
                 VerifyFiles(bytes, custom);
                 Call("InstallFiles", bytes, custom);
@@ -164,7 +167,7 @@ namespace Tomato.Tests
                 }
 
                 log.AppendLine("PASS unwritable selected directory fails without a partial installation");
-                string selected = Path.Combine(root, "朱果 from edited UI");
+                string selected = Path.Combine(root, "Tommi from edited UI");
                 string received = null;
                 Action<string, bool> install = delegate (string destination, bool desktop)
                 {

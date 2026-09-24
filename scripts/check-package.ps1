@@ -6,7 +6,8 @@ Set-StrictMode -Version Latest
 $projectRoot = Split-Path $PSScriptRoot -Parent
 if ([string]::IsNullOrWhiteSpace($Version)) { $Version = (Get-Content -LiteralPath (Join-Path $projectRoot 'VERSION') -Raw).Trim() }
 if ($version -notmatch '^\d+\.\d+\.\d+$') { throw 'Invalid version.' }
-$archive = Join-Path $projectRoot "dist\TomatoFocus-$version-win-x64.zip"
+$prefix = if ([version]$version -ge [version]'1.1.17') { 'Tommi' } else { 'TomatoFocus' }
+$archive = Join-Path $projectRoot "dist\$prefix-$version-win-x64.zip"
 $expected = @('Tomato.exe', 'Tomato.exe.config', 'README.md', 'LICENSE', 'CHANGELOG.md', 'VALIDATION.md', 'preview.png') | Sort-Object
 if ([version]$version -ge [version]'1.1.15') { $expected = @($expected + 'README.zh-CN.md') | Sort-Object }
 Add-Type -AssemblyName System.IO.Compression.FileSystem

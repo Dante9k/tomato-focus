@@ -6,8 +6,8 @@ $root = Split-Path $PSScriptRoot -Parent
 # Build from the portable package produced by package.ps1; never compile a second app.
 & (Join-Path $PSScriptRoot 'check-package.ps1')
 $version = (Get-Content -LiteralPath (Join-Path $root 'VERSION') -Raw).Trim()
-$zipName = "TomatoFocus-$version-win-x64.zip"
-$setupName = "TomatoFocus-$version-Setup.exe"
+$zipName = "Tommi-$version-win-x64.zip"
+$setupName = "Tommi-$version-Setup.exe"
 $zip = Join-Path $root "dist/$zipName"
 $setup = Join-Path $root "dist/$setupName"
 $hashPath = Join-Path $root 'build/installer-payload.sha256'

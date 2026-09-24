@@ -3,10 +3,10 @@ Set-StrictMode -Version Latest
 $root = Split-Path $PSScriptRoot -Parent
 $version = (Get-Content -LiteralPath (Join-Path $root 'VERSION') -Raw).Trim()
 if ($version -notmatch '^\d+\.\d+\.\d+$') { throw 'Invalid version.' }
-$path = Join-Path $root "dist/TomatoFocus-website-$version.zip"
+$path = Join-Path $root "dist/Tommi-website-$version.zip"
 $recorded = ((Get-Content -LiteralPath ($path + '.sha256') -Raw).Trim() -split '\s+')[0]
 if ((Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash -ne $recorded) { throw 'Website archive checksum mismatch.' }
-$expected = @('index.html', 'style.css', 'app.js', 'release.js', 'assets/tomato.png', 'assets/favicon.ico', 'downloads/SHA256SUMS.txt', "downloads/TomatoFocus-$version-Setup.exe", "downloads/TomatoFocus-$version-win-x64.zip")
+$expected = @('index.html', 'style.css', 'app.js', 'release.js', 'assets/tomato.png', 'assets/favicon.ico', 'downloads/SHA256SUMS.txt', "downloads/Tommi-$version-Setup.exe", "downloads/Tommi-$version-win-x64.zip")
 $expected += @('media/tomato.webp', 'media/timer-edit.webp', 'media/timer-focus.webp', 'media/film-zh.webp', 'media/film-en.webp', 'media/film-zh.mp4', 'media/film-en.mp4')
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 $zip = [IO.Compression.ZipFile]::OpenRead($path)

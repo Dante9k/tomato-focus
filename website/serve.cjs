@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const root = __dirname;
 const mime = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.png': 'image/png', '.webp': 'image/webp', '.mp4': 'video/mp4', '.ico': 'image/x-icon', '.zip': 'application/zip', '.exe': 'application/octet-stream', '.txt': 'text/plain; charset=utf-8' };
-const allowed = /^(index\.html|style\.css|app\.js|release\.js|assets\/(?:tomato\.png|favicon\.ico)|media\/(?:tomato\.webp|timer-(?:edit|focus)\.webp|film-(?:zh|en)\.(?:webp|mp4))|downloads\/(?:SHA256SUMS\.txt|TomatoFocus-\d+\.\d+\.\d+-(?:Setup\.exe|win-x64\.zip)))$/;
+const allowed = /^(index\.html|style\.css|app\.js|release\.js|assets\/(?:tomato\.png|favicon\.ico)|media\/(?:tomato\.webp|timer-(?:edit|focus)\.webp|film-(?:zh|en)\.(?:webp|mp4))|downloads\/(?:SHA256SUMS\.txt|Tommi-\d+\.\d+\.\d+-(?:Setup\.exe|win-x64\.zip)))$/;
 http.createServer((req, res) => {
   let relative;
   try { relative = decodeURIComponent(new URL(req.url, 'http://localhost').pathname).slice(1) || 'index.html'; } catch { res.writeHead(400).end(); return; }

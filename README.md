@@ -1,4 +1,4 @@
-# Zhuguo · Tomato Focus
+# Tommi
 
 English | [简体中文](README.zh-CN.md)
 
@@ -21,21 +21,21 @@ A transparent desktop Pomodoro timer for Windows and macOS, with a rounded clay-
 
 The notification-area icon lets you bring back the widget, check the remaining time, cancel focus, or quit. While focusing, drag and quickly shake the fruit back and forth to cancel; an ordinary drag only moves it. Right-click the tray icon or tomato, or click `···`, to open the dark green settings panel. It includes 25/5/15-minute presets, separate switches for the completion chime, wheel clicks, and throw/landing sounds, plus an eight-second animated preview with sound. Stopping a reminder also stops its sounds.
 
-The editing window is **250 × 250 logical pixels**, with 24-pixel selected digits and 48-pixel-wide time columns. It displays `00:25:00` without visible unit labels; tooltips and accessibility names still identify each column. Durations range from one second to 23:59:59. Digits rotate along a curved wheel and settle on whole values after an inertial scroll, with original mechanical detent sounds at each step. Disabling system animations makes the values switch directly. The completion chime plays once; the reminder animation continues until stopped.
+The editing window is **220 × 220 logical pixels**, with proportionally scaled digits and time columns. It displays `00:25:00` without visible unit labels; tooltips and accessibility names still identify each column. Durations range from one second to 23:59:59. Digits rotate along a curved wheel and settle on whole values after an inertial scroll, with original mechanical detent sounds at each step. Disabling system animations makes the values switch directly. The completion chime plays once; the reminder animation continues until stopped.
 
 On compatible Windows versions and hardware, settings also show an independent haptic-feedback option. Ordinary mice and older Windows versions use sound and visual feedback. The fallback has been verified on Windows 10; actual haptics have not yet been validated on compatible hardware. See [Microsoft's haptics documentation](https://learn.microsoft.com/en-us/windows/apps/develop/input/haptics).
 
 ## Requirements and installation
 
-Download the `tomato-focus-win-x64` artifact from a successful [Windows build](https://github.com/Dante9k/tommi/actions/workflows/ci.yml).
+Download the [Windows installer](https://github.com/Dante9k/tommi/releases/download/v1.1.17/Tommi-1.1.17-Setup.exe) or [portable ZIP](https://github.com/Dante9k/tommi/releases/download/v1.1.17/Tommi-1.1.17-win-x64.zip).
 
 - Windows 10 or 11, x64, with .NET Framework 4.8.
-- The graphical installer accepts an editable full path and has a **Browse** button for selecting a dedicated empty folder. The default is `%LOCALAPPDATA%/Programs/TomatoFocus/1.1.15`; other writable folders on local drives are supported, including paths containing spaces or Chinese characters. The displayed path is the exact destination, with no extra subfolder appended.
+- The graphical installer accepts an editable full path and has a **Browse** button for selecting a dedicated empty folder. The default is `%LOCALAPPDATA%/Programs/TomatoFocus/1.1.17`; other writable folders on local drives are supported, including paths containing spaces or Chinese characters. The displayed path is the exact destination, with no extra subfolder appended.
 - An existing empty folder can be used. An existing installation is reused only when every file matches the package. Other nonempty folders are preserved; choose a new version folder when upgrading. The installer runs with your current user permissions and asks you to choose another location if it cannot write there.
 - For the portable version, extract the ZIP and open `Tomato.exe`. No installation or administrator permission is required.
-- The desktop app needs no internet connection and includes no login, telemetry, or automatic startup.
+- The desktop app needs no internet connection and includes no account login or telemetry. Launch at login defaults on when you first open the app; turn it off in Tommi settings. This also applies to the portable edition.
 
-Quit a running copy through its tray menu before installing. The installer creates a Start menu shortcut and optionally a desktop shortcut, backing up existing shortcuts with the same name. It does not launch the app automatically or change saved timers. This lightweight installer does not register in Windows Installed Apps: to uninstall, quit the app, then remove its installation folder and shortcuts. Your settings are retained by default.
+Quit a running copy through its tray menu before installing. The installer creates a Start menu shortcut and optionally a desktop shortcut, backing up existing shortcuts with the same name. It does not launch the app automatically or change saved timers. This lightweight installer does not register in Windows Installed Apps: to uninstall, turn off launch at login in Tommi settings, quit the app, then remove its installation folder and shortcuts. Your settings are retained by default.
 
 The app and installer are currently unsigned. For performance measurements and the limits of mixed-DPI, multi-monitor, and accessibility verification, see the [validation record](docs/VALIDATION.md).
 
@@ -56,14 +56,14 @@ The desktop project has no third-party NuGet dependencies. Build with the .NET F
 | --- | --- |
 | Desktop application | `build/Tomato.exe` |
 | Developer verification tool | `build/Tomato.Verify.exe` |
-| Distributable app and bilingual documentation | `dist/TomatoFocus-1.1.15-win-x64/` |
+| Distributable app and bilingual documentation | `dist/Tommi-1.1.17-win-x64/` |
 | Portable ZIP and SHA-256 checksum | `dist/` |
-| Windows graphical installer | `dist/TomatoFocus-<version>-Setup.exe`, generated by `./package.ps1` |
+| Windows graphical installer | `dist/Tommi-<version>-Setup.exe`, generated by `./package.ps1` |
 | Website ZIP | `dist/`, generated by `./scripts/build-website.ps1` |
 
 Release archives use an explicit file allowlist. They exclude verification tools, runtime state, logs, debug symbols, and development caches. Neither `build/` nor `dist/` is tracked in Git.
 
-The developer helper `install-local.ps1` still uses the fixed `%LOCALAPPDATA%/Programs/TomatoFocus/<version>` location; use the graphical installer to choose a custom folder. The helper backs up settings and shortcut information, retains previous versions, and records rollback paths in the parent folder's `backups` directory. Upgrades do not add automatic startup or change antivirus settings. If security software blocks a file, preserve the exact alert for investigation rather than disabling protection or adding an automatic exclusion.
+The developer helper `install-local.ps1` still uses the fixed `%LOCALAPPDATA%/Programs/TomatoFocus/<version>` location; use the graphical installer to choose a custom folder. The helper backs up settings and shortcut information, retains previous versions, and records rollback paths in the parent folder's `backups` directory. Existing launch-at-login choices are preserved. Windows startup settings remain authoritative; the app does not override system-disabled startup entries or recreate entries removed outside the app. Antivirus settings are never changed. If security software blocks a file, preserve the exact alert for investigation rather than disabling protection or adding an automatic exclusion.
 
 Alternatively, open **`Tomato.Focus.sln`** in Visual Studio with the .NET Framework 4.8 development tools installed, and build for x64.
 
@@ -80,7 +80,7 @@ Alternatively, open **`Tomato.Focus.sln`** in Visual Studio with the .NET Framew
 ./build/Tomato.Verify.exe --smoke-test
 
 # Verify custom installation and shortcuts in isolated temporary folders
-./build/Tomato.Verify.exe --installer-test ./dist/TomatoFocus-1.1.15-Setup.exe
+./build/Tomato.Verify.exe --installer-test ./dist/Tommi-1.1.17-Setup.exe
 ```
 
 Results are written to `build/*-results.txt`. Desktop checks use separate state files and leave everyday timers untouched. Installer checks cover spaces and Chinese characters, new and existing empty folders, repeat installation, nonempty-folder protection, unwritable locations, and shortcuts targeting a custom path. These checks call application actions and do not replace physical mouse or touch testing.

@@ -5,6 +5,7 @@ import TomatoCore
 final class AppController: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDelegate {
     var state = TimerState()
     let feedback = Feedback()
+    private(set) var loginItem: LoginItemController!
     private(set) var panel: TomatoPanel!
     private(set) var tomato: TomatoView!
     private var status: NSStatusItem!
@@ -28,16 +29,22 @@ final class AppController: NSObject, NSApplicationDelegate, NSWindowDelegate, NS
             catch { showError(localized("Saved settings could not be read or backed up. The app will close to preserve them.", "无法读取或备份设置。程序将退出以保留原文件。")); NSApp.terminate(nil); return }
             showError(localized("Saved settings were unreadable. A backup has been kept beside the settings file.", "设置文件无法读取，已在原目录保留备份。"))
         }
-        panel = TomatoPanel(contentRect: NSRect(x: 0, y: 0, width: 250, height: 250), styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false)
+        loginItem = LoginItemController(service: verificationDirectory == nil ? MacLoginItemService() : VerificationLoginItemService())
+        loginItem.initialize(state: &state)
+        save()
+        let editingSize = WidgetLayout.editingSize
+        panel = TomatoPanel(contentRect: NSRect(x: 0, y: 0, width: editingSize, height: editingSize), styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false)
         panel.title = "朱果 · Tomato Focus"; panel.backgroundColor = .clear; panel.isOpaque = false
         panel.hasShadow = false; panel.level = NSWindow.Level(rawValue: NSWindow.Level.floating.rawValue + 1)
         panel.hidesOnDeactivate = false; panel.isReleasedWhenClosed = false; panel.animationBehavior = .none
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]; panel.delegate = self
-        tomato = TomatoView(frame: NSRect(x: 0, y: 0, width: 250, height: 250)); tomato.controller = self
+        tomato = TomatoView(frame: NSRect(x: 0, y: 0, width: editingSize, height: editingSize)); tomato.controller = self
         tomato.autoresizingMask = [.width, .height]; panel.contentView = tomato
         tomato.setDuration(state.duration)
         let screen = NSScreen.main?.visibleFrame ?? NSRect(x: 0, y: 0, width: 1440, height: 900)
-        panel.setFrameOrigin(NSPoint(x: state.x ?? screen.maxX - 280, y: state.y ?? screen.maxY - 280))
+        let savedSize = Double(WidgetLayout.savedCoordinateSize), size = Double(editingSize)
+        panel.setFrameOrigin(NSPoint(x: state.x.map { $0 + savedSize - size } ?? Double(screen.maxX) - size - 30,
+                                    y: state.y.map { $0 + savedSize - size } ?? Double(screen.maxY) - size - 30))
         ensureVisible()
         status = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         status.button?.image = Artwork.tomato.copy() as? NSImage; status.button?.image?.size = NSSize(width: 23, height: 23)
@@ -56,6 +63,7 @@ final class AppController: NSObject, NSApplicationDelegate, NSWindowDelegate, NS
         if let directory = verificationDirectory { UIVerification.run(controller: self, directory: directory) }
     }
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool { show(); return true }
+    func applicationDidBecomeActive(_ notification: Notification) { loginItem?.refresh() }
     func applicationWillTerminate(_ notification: Notification) {
         saveTimer?.invalidate(); tickTimer?.invalidate(); appearanceTimer?.invalidate(); previewTimer?.invalidate()
         overlay?.stop(); feedback.stop(); savePosition()
@@ -127,6 +135,7 @@ final class AppController: NSObject, NSApplicationDelegate, NSWindowDelegate, NS
     @objc func quit() { NSApp.terminate(nil) }
     @objc func showSettings() {
         tomato.resetGesture()
+        loginItem.refresh()
         if settings == nil {
             let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 476, height: 630), styleMask: [.titled, .closable, .fullSizeContentView], backing: .buffered, defer: false)
             window.title = localized("Tomato Focus · Preferences", "朱果 · 偏好设置")
@@ -135,6 +144,10 @@ final class AppController: NSObject, NSApplicationDelegate, NSWindowDelegate, NS
             window.center(); settings = window
         }
         refreshSettings(); NSApp.activate(ignoringOtherApps: true); settings?.makeKeyAndOrderFront(nil)
+    }
+    func setLaunchAtLogin(_ enabled: Bool) {
+        loginItem.setEnabled(enabled, state: &state)
+        save()
     }
     private func refreshSettings() {
         if let settings {
@@ -159,7 +172,8 @@ final class AppController: NSObject, NSApplicationDelegate, NSWindowDelegate, NS
     }
     private func animate(focus: Bool, immediate: Bool = false) {
         appearanceTimer?.invalidate(); tomato.resetGesture()
-        let startFrame = panel.frame, targetSize: CGFloat = focus ? 125 : 250
+        let startFrame = panel.frame
+        let targetSize = focus ? WidgetLayout.focusSize : isAlarming ? WidgetLayout.reminderSize : WidgetLayout.editingSize
         let anchor = NSPoint(x: startFrame.maxX, y: startFrame.maxY)
         let startOpacity = tomato.fruitOpacity
         let targetOpacity = focus && !NSWorkspace.shared.accessibilityDisplayShouldReduceTransparency ? 0.32 : 1.0
@@ -185,7 +199,8 @@ final class AppController: NSObject, NSApplicationDelegate, NSWindowDelegate, NS
     }
     func savePosition() {
         guard panel != nil else { return }
-        state.x = Double(panel.frame.maxX) - 250; state.y = Double(panel.frame.maxY) - 250; save()
+        state.x = Double(panel.frame.maxX - WidgetLayout.savedCoordinateSize)
+        state.y = Double(panel.frame.maxY - WidgetLayout.savedCoordinateSize); save()
     }
     func save() {
         guard store != nil else { return }

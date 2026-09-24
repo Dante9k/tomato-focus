@@ -5,11 +5,14 @@ The Mac edition shares the existing tomato artwork, vector numeral paths, detent
 ## Automated coverage
 
 - Domain tests: deadline persistence and sleep/expiry math; backward-compatible settings defaults; duration limits; horizontal/vertical shake, small jitter, slow direction changes, ordinary drag; wheel wrapping, inertia and reduced-motion settling; ballistic landing, one bounce, two impact events and bounded lifetime.
-- Native UI verification (isolated state): silent presets, wheel-to-duration event, preloaded audio, 250 → 125-point transition, fixed upper-right anchor, fruit opacity (including rendered pixel alpha), hidden editor, hide/show while counting, actual elapsed deadline, reminder at the same position, dismissal, cancel/restore and persisted state. PNG captures exercise the actual AppKit view and SwiftUI preferences.
+- Native UI verification (isolated state): 220-point editor, scaled wheel click coordinates, silent presets, wheel-to-duration event, preloaded audio, 220 → 125-point transition, fixed upper-right anchor, fruit opacity (including rendered pixel alpha), hidden editor, hide/show while counting, actual elapsed deadline, 250-point reminder at the same position, dismissal, cancel/restore and persisted state. PNG captures exercise the actual AppKit view and SwiftUI preferences.
 - Package: both Mach-O architectures, macOS deployment target in Info.plist, strict ad-hoc signature verification, exact resource file allowlist, DMG/ZIP and SHA-256.
 - Cold-launch checks start the packaged app again with isolated active and overdue deadlines, verifying read-only countdown restoration and immediate reminder restoration. The normal 32% renderer is exercised even when a hosted runner enables Reduce Transparency; the test does not change the runner's system preferences.
+- Login policy tests cover migration/default-on, disabling across relaunches, pending approval, registration/removal failures, and respecting an item removed by the user in System Settings. UI verification uses an injected service. Disposable GitHub runners additionally register and remove the real `SMAppService.mainApp` item, refuse to touch a pre-existing item, and record the actual OS status. This does not simulate a user logout/login.
 
 ## Physical Mac checks still required
+
+- Automatic launch after a real user logout/login, including any system approval flow. Registration/removal checks cannot establish that a later login actually launched the app.
 
 - Force Touch feedback, mouse drag/reversal comfort and trackpad inertia feel.
 - Perceived detent/throw/landing sound quality through speakers and headphones.

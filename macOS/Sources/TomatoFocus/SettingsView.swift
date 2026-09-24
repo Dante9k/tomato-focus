@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SettingsView: View {
     let controller: AppController
+    @ObservedObject private var loginItem: LoginItemController
     @State private var wheel: Bool
     @State private var completion: Bool
     @State private var effects: Bool
@@ -11,6 +12,7 @@ struct SettingsView: View {
     private let coral = Color(red: 1, green: 0.40, blue: 0.33)
     init(controller: AppController) {
         self.controller = controller
+        _loginItem = ObservedObject(wrappedValue: controller.loginItem)
         _wheel = State(initialValue: controller.state.wheelSound)
         _completion = State(initialValue: controller.state.completionSound)
         _effects = State(initialValue: controller.state.effectsSound)
@@ -44,6 +46,16 @@ struct SettingsView: View {
                 setting(localized("Completion chime", "到时提示音"), subtitle: localized("Once, when your moment is complete", "在专注完成时轻响一次"), value: $completion)
                 setting(localized("Throw & landing", "投掷与落地"), subtitle: localized("Sound follows each little tomato", "声音跟随每一颗小番茄"), value: $effects)
                 setting(localized("Trackpad haptics", "触控板轻触反馈"), subtitle: localized("On compatible Force Touch devices", "由兼容的 Force Touch 设备提供"), value: $haptics)
+                setting(localized("Launch at login", "登录时启动"), subtitle: loginItem.detail,
+                        value: Binding(get: { loginItem.isEnabled }, set: { controller.setLaunchAtLogin($0) }))
+                if loginItem.needsAttention {
+                    HStack(spacing: 18) {
+                        Button(localized("Login Items…", "打开系统登录项…")) { loginItem.openSystemSettings() }
+                        if loginItem.errorMessage != nil || loginItem.status == .notFound {
+                            Button(localized("Try again", "重试")) { controller.setLaunchAtLogin(loginItem.requestedEnabled) }
+                        }
+                    }.font(.system(size: 11)).buttonStyle(.plain).foregroundStyle(coral)
+                }
             }
             .padding(18).frame(maxWidth: .infinity, alignment: .leading)
             .background(.white.opacity(0.045), in: RoundedRectangle(cornerRadius: 18))
@@ -82,7 +94,7 @@ struct SettingsView: View {
         HStack {
             VStack(alignment: .leading, spacing: 4) {
                 Text(title).font(.system(size: 13, weight: .medium))
-                Text(subtitle).font(.system(size: 10)).opacity(0.45)
+                Text(subtitle).font(.system(size: 10)).opacity(0.45).fixedSize(horizontal: false, vertical: true)
             }
             Spacer(minLength: 12)
             Toggle(title, isOn: value).labelsHidden().toggleStyle(.switch).controlSize(.small)

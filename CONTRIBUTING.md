@@ -24,6 +24,6 @@ Mac 版位于 `macOS/`，需要 macOS 13 及以上与 Swift 5.9 / Xcode 命令�
 
 网站构建使用 `./scripts/build-website.ps1`，包含正式程序、安装器与网站白名单校验；可独立运行 `./scripts/check-website-package.ps1` 检查网站包。浏览器验证依赖及步骤见 `website/README.md`。音效重制和宣传片制作是可选开发任务，依赖分别列在 `scripts/requirements-audio.txt` 与 `marketing/xiaohongshu/requirements.txt`，建议安装在仓库外的 Python 虚拟环境中；正式应用构建不需要 Python 或 Node.js。
 
-发布包由 `VERSION` 指定版本；变更版本时同步更新 `AssemblyInfo.cs` 和 `CHANGELOG.md`。企业签名证书不得放入仓库，签名应在受控发布环境完成。
+Windows 发布包由 `VERSION` 指定版本；变更版本时同步更新 `AssemblyInfo.cs` 和 `CHANGELOG.md`。Mac 发布包单独使用 `macOS/VERSION`，修改后同步 Mac 说明与版本记录。企业签名证书不得放入仓库，签名应在受控发布环境完成。
 
 仓库首页使用英文 `README.md`，中文对应 `README.zh-CN.md`，两份均随安装包分发。修改使用方法、安装行为或版本号时同步两种语言。安装器检查使用 `Tomato.Verify.exe --installer-test <Setup.exe>`，由打包脚本自动执行；它只写入独立临时目录，不改变真实桌面快捷方式或日常计时状态。

@@ -7,6 +7,7 @@ $path = Join-Path $root "dist/TomatoFocus-website-$version.zip"
 $recorded = ((Get-Content -LiteralPath ($path + '.sha256') -Raw).Trim() -split '\s+')[0]
 if ((Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash -ne $recorded) { throw 'Website archive checksum mismatch.' }
 $expected = @('index.html', 'style.css', 'app.js', 'release.js', 'assets/tomato.png', 'assets/favicon.ico', 'downloads/SHA256SUMS.txt', "downloads/TomatoFocus-$version-Setup.exe", "downloads/TomatoFocus-$version-win-x64.zip")
+$expected += @('media/tomato.webp', 'media/timer-edit.webp', 'media/timer-focus.webp', 'media/film-zh.webp', 'media/film-en.webp', 'media/film-zh.mp4', 'media/film-en.mp4')
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 $zip = [IO.Compression.ZipFile]::OpenRead($path)
 try {

@@ -3,7 +3,6 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Security.AccessControl;
 using System.Security.Cryptography;
 using System.Security.Principal;
@@ -72,23 +71,9 @@ namespace Tomato.Tests
             Call("Shortcut", folder, target);
             string backupRoot = Path.Combine(Path.GetDirectoryName(target), "shortcut-backups");
             Require(Directory.GetFiles(backupRoot, "*.lnk", SearchOption.AllDirectories).Any(file => File.ReadAllBytes(file).SequenceEqual(original)), "Existing shortcut was not backed up.");
-            Type shellType = Type.GetTypeFromProgID("WScript.Shell");
-            object shell = Activator.CreateInstance(shellType);
-            object link = null;
-            try
-            {
-                link = shellType.InvokeMember("CreateShortcut", BindingFlags.InvokeMethod, null, shell, new object[] { path });
-                string destination = (string)link.GetType().InvokeMember("TargetPath", BindingFlags.GetProperty, null, link, null);
-                string working = (string)link.GetType().InvokeMember("WorkingDirectory", BindingFlags.GetProperty, null, link, null);
-                Require(String.Equals(destination, Path.Combine(target, "Tomato.exe"), StringComparison.OrdinalIgnoreCase), "Shortcut points to the default path instead of the selected path.");
-                Require(String.Equals(working, target, StringComparison.OrdinalIgnoreCase), "Shortcut working directory differs.");
-            }
-            finally
-            {
-                if (link != null)
-                    Marshal.FinalReleaseComObject(link);
-                Marshal.FinalReleaseComObject(shell);
-            }
+            var saved = (string[])Call("ReadShortcut", path);
+            Require(String.Equals(saved[0], Path.Combine(target, "Tomato.exe"), StringComparison.OrdinalIgnoreCase), "Shortcut points to the default path instead of the selected path.");
+            Require(String.Equals(saved[1], target, StringComparison.OrdinalIgnoreCase), "Shortcut working directory differs.");
         }
 
         public static int Run(string installer)
@@ -179,7 +164,7 @@ namespace Tomato.Tests
                 }
 
                 log.AppendLine("PASS unwritable selected directory fails without a partial installation");
-                string selected = Path.Combine(root, "from edited UI");
+                string selected = Path.Combine(root, "朱果 from edited UI");
                 string received = null;
                 Action<string, bool> install = delegate (string destination, bool desktop)
                 {

@@ -6,6 +6,9 @@ using System.IO.Compression;
 using System.Linq;
 using System.Reflection;
 using System.Security.Cryptography;
+using System.Runtime.InteropServices;
+using System.Runtime.InteropServices.ComTypes;
+using System.Text;
 using System.Windows.Forms;
 
 [assembly: AssemblyTitle("朱果 · 安装程序")]
@@ -283,23 +286,62 @@ internal static class Setup
             Directory.CreateDirectory(backupRoot);
             File.Copy(linkPath, Path.Combine(backupRoot, "朱果番茄钟.lnk"));
         }
-        Type shellType = Type.GetTypeFromProgID("WScript.Shell");
-        object shell = Activator.CreateInstance(shellType);
-        object link = null;
+        var link = (IShellLinkW)new ShellLink();
         try
         {
-            link = shellType.InvokeMember("CreateShortcut", BindingFlags.InvokeMethod, null, shell, new object[] { linkPath });
-            var type = link.GetType();
-            type.InvokeMember("TargetPath", BindingFlags.SetProperty, null, link, new object[] { Path.Combine(target, "Tomato.exe") });
-            type.InvokeMember("WorkingDirectory", BindingFlags.SetProperty, null, link, new object[] { target });
-            type.InvokeMember("Arguments", BindingFlags.SetProperty, null, link, new object[] { "" });
-            type.InvokeMember("IconLocation", BindingFlags.SetProperty, null, link, new object[] { Path.Combine(target, "Tomato.exe") + ",0" });
-            type.InvokeMember("Save", BindingFlags.InvokeMethod, null, link, null);
+            link.SetPath(Path.Combine(target, "Tomato.exe"));
+            link.SetWorkingDirectory(target);
+            link.SetArguments("");
+            link.SetIconLocation(Path.Combine(target, "Tomato.exe"), 0);
+            ((IPersistFile)link).Save(linkPath, true);
         }
-        finally
+        finally { Marshal.FinalReleaseComObject(link); }
+        var saved = ReadShortcut(linkPath);
+        if (!String.Equals(saved[0], Path.Combine(target, "Tomato.exe"), StringComparison.OrdinalIgnoreCase) ||
+            !String.Equals(saved[1], target, StringComparison.OrdinalIgnoreCase))
+            throw new IOException("快捷方式校验失败。安装文件已保留，请检查所选路径后重试。");
+    }
+
+    private static string[] ReadShortcut(string path)
+    {
+        var link = (IShellLinkW)new ShellLink();
+        try
         {
-            if (link != null) System.Runtime.InteropServices.Marshal.FinalReleaseComObject(link);
-            System.Runtime.InteropServices.Marshal.FinalReleaseComObject(shell);
+            ((IPersistFile)link).Load(path, 0);
+            var target = new StringBuilder(1024);
+            var directory = new StringBuilder(1024);
+            link.GetPath(target, target.Capacity, IntPtr.Zero, 0);
+            link.GetWorkingDirectory(directory, directory.Capacity);
+            return new[] { target.ToString(), directory.ToString() };
         }
+        finally { Marshal.FinalReleaseComObject(link); }
+    }
+
+    // Explicit Unicode interfaces preserve Chinese link names on English Windows.
+    // https://learn.microsoft.com/windows/win32/api/shobjidl_core/nn-shobjidl_core-ishelllinkw
+    [ComImport, Guid("00021401-0000-0000-C000-000000000046")]
+    private class ShellLink { }
+
+    [ComImport, Guid("000214F9-0000-0000-C000-000000000046"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+    private interface IShellLinkW
+    {
+        void GetPath([Out, MarshalAs(UnmanagedType.LPWStr)] StringBuilder path, int capacity, IntPtr findData, uint flags);
+        void GetIDList(out IntPtr idList);
+        void SetIDList(IntPtr idList);
+        void GetDescription([Out, MarshalAs(UnmanagedType.LPWStr)] StringBuilder description, int capacity);
+        void SetDescription([MarshalAs(UnmanagedType.LPWStr)] string description);
+        void GetWorkingDirectory([Out, MarshalAs(UnmanagedType.LPWStr)] StringBuilder path, int capacity);
+        void SetWorkingDirectory([MarshalAs(UnmanagedType.LPWStr)] string path);
+        void GetArguments([Out, MarshalAs(UnmanagedType.LPWStr)] StringBuilder arguments, int capacity);
+        void SetArguments([MarshalAs(UnmanagedType.LPWStr)] string arguments);
+        void GetHotkey(out short hotkey);
+        void SetHotkey(short hotkey);
+        void GetShowCmd(out int showCommand);
+        void SetShowCmd(int showCommand);
+        void GetIconLocation([Out, MarshalAs(UnmanagedType.LPWStr)] StringBuilder path, int capacity, out int index);
+        void SetIconLocation([MarshalAs(UnmanagedType.LPWStr)] string path, int index);
+        void SetRelativePath([MarshalAs(UnmanagedType.LPWStr)] string path, uint reserved);
+        void Resolve(IntPtr owner, uint flags);
+        void SetPath([MarshalAs(UnmanagedType.LPWStr)] string path);
     }
 }

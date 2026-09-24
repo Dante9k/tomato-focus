@@ -13,12 +13,15 @@ final class TomatoView: NSView {
     var fruitOpacity = 1.0
     var remaining = 1500
     private var shake = ShakeDetector()
-    private var down = NSPoint.zero, origin = NSPoint.zero
+    private var down = NSPoint.zero
     private var dragging = false
     override var isFlipped: Bool { true }
+    override var isOpaque: Bool { false }
     override var acceptsFirstResponder: Bool { true }
     override init(frame: NSRect) {
         super.init(frame: frame)
+        wantsLayer = true
+        layerContentsRedrawPolicy = .duringViewResize
         setBoundsSize(NSSize(width: WidgetLayout.canvasSize, height: WidgetLayout.canvasSize))
         toolTip = localized("Double-click the stem to focus · Drag to move · Shake to cancel", "双击绿蒂开始 · 拖动移动 · 专注时摇晃取消")
         for (i, wheel) in wheels.enumerated() {
@@ -38,6 +41,7 @@ final class TomatoView: NSView {
         super.setFrameSize(newSize)
         // Scale drawing, child controls and hit testing together, rather than shrinking art alone.
         setBoundsSize(NSSize(width: WidgetLayout.canvasSize, height: WidgetLayout.canvasSize))
+        needsDisplay = true
     }
     func setDuration(_ duration: Int) { wheels[0].set(duration / 3600); wheels[1].set(duration / 60 % 60); wheels[2].set(duration % 60) }
     var duration: Int { wheels[0].model.value * 3600 + wheels[1].model.value * 60 + wheels[2].model.value }
@@ -69,7 +73,7 @@ final class TomatoView: NSView {
         context.restoreGState()
     }
     override func mouseDown(with event: NSEvent) {
-        guard let window, controller?.isAnimating != true else { return }
+        guard window != nil, controller?.isAnimating != true else { return }
         let local = convert(event.locationInWindow, from: nil)
         if !focusing && !alarming && local.y > 195 && local.y < 226 && abs(local.x - 125) < 22 { controller?.showSettings(); return }
         if event.clickCount == 2 {
@@ -77,17 +81,25 @@ final class TomatoView: NSView {
             else if !focusing { controller?.start() }
             return
         }
-        down = NSEvent.mouseLocation; origin = window.frame.origin; dragging = true
-        shake.reset(x: down.x, y: down.y); window.makeKey()
+        beginDragging(at: NSEvent.mouseLocation)
     }
     override func mouseDragged(with event: NSEvent) {
-        guard dragging, let window else { return }
-        let point = NSEvent.mouseLocation
+        drag(to: NSEvent.mouseLocation, time: event.timestamp)
+    }
+    func beginDragging(at point: NSPoint) {
+        guard let window, controller?.isAnimating != true else { return }
+        down = point; dragging = true
+        shake.reset(x: point.x, y: point.y); window.makeKey()
+    }
+    func drag(to point: NSPoint, time: TimeInterval) {
+        guard dragging, let controller else { return }
+        let delta = NSPoint(x: point.x - down.x, y: point.y - down.y)
         if alarming {
-            controller?.dismiss(); dragging = true; origin = window.frame.origin; down = point
+            controller.dismiss(); dragging = true
         }
-        window.setFrameOrigin(NSPoint(x: origin.x + point.x - down.x, y: origin.y + point.y - down.y))
-        if focusing && shake.move(x: point.x, y: point.y, time: event.timestamp) { controller?.cancel() }
+        down = point
+        controller.move(by: delta)
+        if focusing && shake.move(x: point.x, y: point.y, time: time) { controller.cancel() }
     }
     override func mouseUp(with event: NSEvent) { resetGesture(); controller?.savePosition() }
     override func rightMouseDown(with event: NSEvent) { controller?.showSettings() }

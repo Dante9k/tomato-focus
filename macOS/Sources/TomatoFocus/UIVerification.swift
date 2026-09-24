@@ -93,6 +93,14 @@ enum UIVerification {
         require(c.tomato.duration == 61 && c.state.duration == 61, "Wheel event")
         c.applyPreset(2); capture("macos-edit")
         let anchor = NSPoint(x: c.panel.frame.maxX, y: c.panel.frame.maxY)
+        var dragAnchor = NSPoint.zero, pointer = NSPoint.zero
+        var dragSamples = 0
+        var maximumDragDrift = 0.0
+        func checkDragPosition() {
+            let error = max(abs(c.panel.frame.maxX - dragAnchor.x), abs(c.panel.frame.maxY - dragAnchor.y))
+            maximumDragDrift = max(maximumDragDrift, error)
+            require(error < 0.1, "Dismissal animation must follow drag; anchor drift: \(error)")
+        }
         c.start()
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
             require(c.isFocusing && c.panel.frame.width == WidgetLayout.focusSize, "Focus size/state")
@@ -109,11 +117,37 @@ enum UIVerification {
         DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
             require(c.isAlarming && c.panel.frame.width == WidgetLayout.reminderSize, "Deadline reminder")
             require(abs(c.panel.frame.maxX - anchor.x) < 0.1, "Reminder must not jump to screen corner")
-            capture("macos-reminder"); c.dismiss()
-            require(!c.isAlarming && c.state.deadline == nil, "Dismiss reminder")
-            c.applyPreset(90)
+            capture("macos-reminder")
+            let stoppedOverlay = c.overlay
+            require(stoppedOverlay != nil, "Reminder overlay exists before drag")
+            dragAnchor = NSPoint(x: c.panel.frame.maxX, y: c.panel.frame.maxY)
+            pointer = NSPoint(x: c.panel.frame.midX, y: c.panel.frame.midY)
+            c.tomato.beginDragging(at: pointer)
+            for step in 0..<25 {
+                DispatchQueue.main.asyncAfter(deadline: .now() + Double(step) * 0.015) {
+                    let dx = [-12.0, -9, 7, 11, -6, 10, -8][step % 7]
+                    let dy = [-4.0, 6, 3, -5][step % 4]
+                    pointer.x += dx; pointer.y += dy
+                    dragAnchor.x += dx; dragAnchor.y += dy
+                    c.tomato.drag(to: pointer, time: ProcessInfo.processInfo.systemUptime)
+                    checkDragPosition()
+                    require(!c.isAlarming && c.state.deadline == nil && c.overlay == nil, "Drag dismisses reminder once")
+                    require(stoppedOverlay?.panel.isVisible == false && stoppedOverlay?.view.flights.isEmpty == true, "Dismissal removes projectile window and particles")
+                    // Sample between pointer updates, when an appearance timer can run.
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.007) {
+                        checkDragPosition(); dragSamples += 1
+                    }
+                }
+            }
         }
         DispatchQueue.main.asyncAfter(deadline: .now() + 3.6) {
+            checkDragPosition()
+            require(dragSamples == 25 && !c.isAnimating && c.panel.frame.width == 220, "Continuous drag survives complete reminder-to-editor resize")
+            c.tomato.resetGesture(); c.savePosition()
+            require(abs((c.state.x ?? 0) + WidgetLayout.savedCoordinateSize - dragAnchor.x) < 0.1 && abs((c.state.y ?? 0) + WidgetLayout.savedCoordinateSize - dragAnchor.y) < 0.1, "Dragged position persists after animation")
+            require(c.tomato.wantsLayer && !c.tomato.isOpaque, "Transparent widget uses a retained backing layer")
+            capture("macos-after-drag")
+            c.applyPreset(90)
             c.showSettings()
             if let settings = NSApp.windows.first(where: { $0 !== c.panel && $0.styleMask.contains(.titled) }), let view = settings.contentView {
                 view.layoutSubtreeIfNeeded(); capture("macos-settings", view: view); settings.orderOut(nil)
@@ -126,7 +160,7 @@ enum UIVerification {
                 let persisted = try StateStore(url: directory.appendingPathComponent("state.json")).load()
                 require(persisted.deadline == nil && persisted.duration == 90, "Persisted state")
                 require(persisted.launchAtLogin && persisted.loginItemInitialized, "Persisted login preference")
-                try "PASS: preset, wheel event, audio preload, focus/opacity/anchor, hide/restore, expiry, dismissal, cancellation, persistence\n".write(to: directory.appendingPathComponent("ui-results.txt"), atomically: true, encoding: .utf8)
+                try "PASS: preset, wheel event, audio preload, focus/opacity/anchor, hide/restore, expiry, continuous drag dismissal, overlay cleanup, cancellation, persistence; drag samples: \(dragSamples), maximum anchor drift: \(maximumDragDrift) points\n".write(to: directory.appendingPathComponent("ui-results.txt"), atomically: true, encoding: .utf8)
             } catch { require(false, "State verification") }
             print("macOS UI verification passed")
             NSApp.terminate(nil)

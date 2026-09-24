@@ -11,7 +11,8 @@ final class AppController: NSObject, NSApplicationDelegate, NSWindowDelegate, NS
     private var status: NSStatusItem!
     private var store: StateStore!
     private var tickTimer: Timer?, appearanceTimer: Timer?, saveTimer: Timer?, previewTimer: Timer?
-    private var overlay: ThrowOverlay?
+    private(set) var overlay: ThrowOverlay?
+    private var appearanceAnchor = NSPoint.zero
     private var settings: NSWindow?
     private var hasReportedSaveError = false
     private(set) var isAnimating = false
@@ -133,6 +134,14 @@ final class AppController: NSObject, NSApplicationDelegate, NSWindowDelegate, NS
     @objc func show() { tomato.resetGesture(); ensureVisible(); panel.orderFrontRegardless() }
     @objc func hide() { tomato.resetGesture(); panel.orderOut(nil) }
     @objc func quit() { NSApp.terminate(nil) }
+    func move(by delta: NSPoint) {
+        // Dragging and resizing share one anchor. The next animation frame must not
+        // move a dragged window back to the position captured before dismissal.
+        if isAnimating {
+            appearanceAnchor.x += delta.x; appearanceAnchor.y += delta.y
+        }
+        panel.setFrameOrigin(NSPoint(x: panel.frame.minX + delta.x, y: panel.frame.minY + delta.y))
+    }
     @objc func showSettings() {
         tomato.resetGesture()
         loginItem.refresh()
@@ -174,7 +183,7 @@ final class AppController: NSObject, NSApplicationDelegate, NSWindowDelegate, NS
         appearanceTimer?.invalidate(); tomato.resetGesture()
         let startFrame = panel.frame
         let targetSize = focus ? WidgetLayout.focusSize : isAlarming ? WidgetLayout.reminderSize : WidgetLayout.editingSize
-        let anchor = NSPoint(x: startFrame.maxX, y: startFrame.maxY)
+        appearanceAnchor = NSPoint(x: startFrame.maxX, y: startFrame.maxY)
         let startOpacity = tomato.fruitOpacity
         let targetOpacity = focus && !NSWorkspace.shared.accessibilityDisplayShouldReduceTransparency ? 0.32 : 1.0
         let began = ProcessInfo.processInfo.systemUptime
@@ -182,8 +191,8 @@ final class AppController: NSObject, NSApplicationDelegate, NSWindowDelegate, NS
         func frame(_ progress: Double) {
             let eased = 1 - pow(1 - progress, 4), size = startFrame.width + (targetSize - startFrame.width) * eased
             self.tomato.fruitOpacity = startOpacity + (targetOpacity - startOpacity) * eased
-            self.panel.setFrame(NSRect(x: anchor.x - size, y: anchor.y - size, width: size, height: size), display: true)
             self.tomato.needsDisplay = true
+            self.panel.setFrame(NSRect(x: self.appearanceAnchor.x - size, y: self.appearanceAnchor.y - size, width: size, height: size), display: true)
         }
         func finish() {
             self.isAnimating = false; self.appearanceTimer = nil

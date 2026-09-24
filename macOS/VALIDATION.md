@@ -4,6 +4,8 @@ The Mac edition shares the existing tomato artwork, vector numeral paths, detent
 
 ## Automated coverage
 
+- Drag-dismissal regression: 25 alternating pointer updates during the 250 → 220-point resize, with additional samples between updates to detect animation snap-back. Checks that the first movement is retained, projectiles stop, the overlay disappears, the editor returns and the final upper-right position is persisted. The widget uses transparent layer-backed drawing with resize invalidation; captures include the post-drag editor.
+
 - Domain tests: deadline persistence and sleep/expiry math; backward-compatible settings defaults; duration limits; horizontal/vertical shake, small jitter, slow direction changes, ordinary drag; wheel wrapping, inertia and reduced-motion settling; ballistic landing, one bounce, two impact events and bounded lifetime.
 - Native UI verification (isolated state): 220-point editor, scaled wheel click coordinates, silent presets, wheel-to-duration event, preloaded audio, 220 → 125-point transition, fixed upper-right anchor, fruit opacity (including rendered pixel alpha), hidden editor, hide/show while counting, actual elapsed deadline, 250-point reminder at the same position, dismissal, cancel/restore and persisted state. PNG captures exercise the actual AppKit view and SwiftUI preferences.
 - Package: both Mach-O architectures, macOS deployment target in Info.plist, strict ad-hoc signature verification, exact resource file allowlist, DMG/ZIP and SHA-256. The mounted DMG volume label, app filename, executable and bundle display names must all use Tommi; the existing bundle identifier and settings path remain stable for upgrades.
@@ -17,6 +19,7 @@ The Mac edition shares the existing tomato artwork, vector numeral paths, detent
 - Force Touch feedback, mouse drag/reversal comfort and trackpad inertia feel.
 - Perceived detent/throw/landing sound quality through speakers and headphones.
 - Retina/external/mixed-scale monitors; menu bar on multiple screens; Spaces, Stage Manager and full-screen applications.
+- Confirmation of the reported large-widget desktop trails on the affected Mac/display. Automated geometry and view captures do not prove the absence of WindowServer/compositor artifacts on every device.
 - Sustained frame pacing at different refresh rates and with GPU load. The animation caps particles at 32, caps catch-up time, uses fixed physics substeps, preloads resources, and drops occupied audio voices instead of queueing; these bounds are not a measured FPS guarantee.
 - Downloaded-app first launch through Gatekeeper. The current package is not Developer ID signed or notarized; ad-hoc signature validation is not notarization.
 

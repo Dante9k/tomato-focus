@@ -100,7 +100,7 @@ WPF离屏渲染检查小尺寸倒计时及浅／深背景对比。125 DIP中倒�
 
 正式应用与验证工具已拆分为独立程序集。标准入口为 `./build.ps1 -Test`、`./build/Tomato.Verify.exe --render-preview`、`./build/Tomato.Verify.exe --smoke-test`。发布包内容与 SHA-256 由 `scripts/check-package.ps1` 检查。以下性能数据来自 1.0.0 的桌面短时采样，不作为 1.0.1 的重新测量结果。
 
-本地脚本构建、独立逻辑验证、编辑态／提醒态渲染及 ZIP 白名单与 SHA-256 校验均已通过。本机缺少 .NET Framework 4.8 目标包，解决方案构建由 GitHub Windows runner 验证：[首次完整 CI](https://github.com/Dante9k/tomato-focus/actions/runs/35681183305) 已通过 Visual Studio 解决方案构建、脚本构建、逻辑验证、实际控件渲染、格式检查和打包校验。后续提交以对应 CI 运行结果为准。
+本地脚本构建、独立逻辑验证、编辑态／提醒态渲染及 ZIP 白名单与 SHA-256 校验均已通过。本机缺少 .NET Framework 4.8 目标包，解决方案构建由 GitHub Windows runner 验证：[首次完整 CI](https://github.com/Dante9k/tommi/actions/runs/35681183305) 已通过 Visual Studio 解决方案构建、脚本构建、逻辑验证、实际控件渲染、格式检查和打包校验。后续提交以对应 CI 运行结果为准。
 
 验证日期：2026-09-22。平台：当前 Windows x64 桌面，屏幕 1536 × 864，WPF 渲染层级 2。
 

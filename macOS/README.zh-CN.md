@@ -6,7 +6,7 @@
 
 ## 安装
 
-在 [GitHub Releases](https://github.com/Dante9k/tomato-focus/releases) 下载 Mac DMG 或 ZIP，也可以从成功的 [macOS 构建](https://github.com/Dante9k/tomato-focus/actions/workflows/macos.yml) 下载 `tomato-focus-macos-universal`。
+在 [GitHub Releases](https://github.com/Dante9k/tommi/releases) 下载 Mac DMG 或 ZIP，也可以从成功的 [macOS 构建](https://github.com/Dante9k/tommi/actions/workflows/macos.yml) 下载 `tomato-focus-macos-universal`。
 
 打开 DMG，把 **Tomato Focus.app** 拖到 Applications，或复制到其他可写目录。运行后会出现桌面番茄和菜单栏图标，不显示 Dock 图标。**首次运行默认开启“登录时启动”**，从 1.1.15 首次升级也会应用此默认值，可随时在偏好设置中关闭。macOS 可能要求在“系统设置 → 通用 → 登录项”批准；程序会显示实际注册／待批准状态，并提供跳转入口。在系统设置中移除后，不会每次启动都重新开启。升级前通过菜单栏正常退出旧版，再替换程序；设置和进行中的计时会保留。
 
@@ -41,4 +41,4 @@ bash scripts/build-macos.sh
 
 Mac 版本号由 `macOS/VERSION` 维护，Windows 继续使用根目录的 `VERSION`。CI 在 Apple Silicon 和 Intel 运行器上分别启动程序。登录项检查覆盖默认开启、关闭、保存、待批准、系统错误和避免重复注册；真实注册／移除 API 只在一次性 GitHub Mac 运行器执行，普通本地构建使用模拟登录项服务，不修改开发者的登录项。真实注销／登录、音效质感、Force Touch、物理输入、帧率、多显示器、桌面空间和全屏应用组合仍需实机验收；详见[验证记录](VALIDATION.md)。
 
-适用仓库[许可证](https://github.com/Dante9k/tomato-focus/blob/main/LICENSE)。三段处理后的落地声音保留 Kenney CC0 说明，并随程序分发。
+适用仓库[许可证](https://github.com/Dante9k/tommi/blob/main/LICENSE)。三段处理后的落地声音保留 Kenney CC0 说明，并随程序分发。

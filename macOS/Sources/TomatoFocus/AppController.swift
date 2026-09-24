@@ -173,7 +173,7 @@ final class AppController: NSObject, NSApplicationDelegate, NSWindowDelegate, NS
     }
     func savePosition() {
         guard panel != nil else { return }
-        state.x = panel.frame.maxX - 250; state.y = panel.frame.maxY - 250; save()
+        state.x = Double(panel.frame.maxX) - 250; state.y = Double(panel.frame.maxY) - 250; save()
     }
     func save() {
         guard store != nil else { return }

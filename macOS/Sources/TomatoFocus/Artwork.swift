@@ -63,7 +63,7 @@ enum Artwork {
                 for y: CGFloat in [9, 22] { aperture.addEllipse(in: CGRect(x: x + 1.7 * scale, y: 136 + (y * 0.86 - 2.3) * scale, width: 4.6 * scale, height: 4.6 * scale)) }
                 x += 8 * scale
             } else if let number = character.wholeNumberValue {
-                var transform = CGAffineTransform(a: scale, b: 0, c: 0, d: scale * 0.86, tx: x + 2 * scale, ty: 136)
+                let transform = CGAffineTransform(a: scale, b: 0, c: 0, d: scale * 0.86, tx: x + 2 * scale, ty: 136)
                 aperture.addPath(numerals[number], transform: transform)
                 x += 24 * scale
             }

@@ -7,9 +7,9 @@ from pathlib import Path
 app = Path(sys.argv[1])
 version = sys.argv[2]
 expected = {
-    "Contents/Info.plist", "Contents/MacOS/TomatoFocus",
+    "Contents/Info.plist", "Contents/MacOS/Tommi",
     "Contents/_CodeSignature/CodeResources", "Contents/Resources/tomato-cute.png",
-    "Contents/Resources/TomatoFocus.icns", "Contents/Resources/Kenney-License.txt",
+    "Contents/Resources/Tommi.icns", "Contents/Resources/Kenney-License.txt",
     *(f"Contents/Resources/impact-soft-{i}.wav" for i in range(3)),
 }
 actual = {p.relative_to(app).as_posix() for p in app.rglob("*") if p.is_file()}
@@ -21,11 +21,14 @@ with (app / "Contents/Info.plist").open("rb") as stream:
     info = plistlib.load(stream)
 assert info["CFBundleShortVersionString"] == version
 assert info["CFBundleIdentifier"] == "com.dante9k.tomatofocus"
+assert app.name == "Tommi.app"
+assert info["CFBundleName"] == info["CFBundleDisplayName"] == "Tommi"
+assert info["CFBundleExecutable"] == info["CFBundleIconFile"] == "Tommi"
 assert info["LSUIElement"] is True
 assert info["LSMinimumSystemVersion"] == "13.0"
-assert (app / "Contents/MacOS/TomatoFocus").stat().st_size > 100_000
+assert (app / "Contents/MacOS/Tommi").stat().st_size > 100_000
 if "--container" in sys.argv:
-    allowed = {"Tomato Focus.app", "README.md", "README.zh-CN.md", "VALIDATION.md", "LICENSE"}
+    allowed = {"Tommi.app", "README.md", "README.zh-CN.md", "VALIDATION.md", "LICENSE"}
     files = {p.name for p in app.parent.iterdir()}
     if "Applications" in files:
         link = app.parent / "Applications"

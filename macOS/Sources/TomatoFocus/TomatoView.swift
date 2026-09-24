@@ -31,7 +31,7 @@ final class TomatoView: NSView {
             }
             wheel.start = { [weak self] in self?.controller?.start() }
         }
-        setAccessibilityLabel(localized("Tomato Focus", "朱果番茄钟"))
+        setAccessibilityLabel(localized("Tommi", "朱果番茄钟"))
     }
     required init?(coder: NSCoder) { fatalError("init(coder:) is unavailable") }
     override func setFrameSize(_ newSize: NSSize) {

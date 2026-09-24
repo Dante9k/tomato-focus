@@ -37,7 +37,7 @@ jobs:
         shell: pwsh
         run: |
           $version = (Get-Content macOS/VERSION -Raw).Trim()
-          $base = "dist/TomatoFocus-$version-macos-universal"
+          $base = "dist/Tommi-$version-macos-universal"
           $assets = @("$base.dmg", "$base.dmg.sha256", "$base.zip", "$base.zip.sha256")
           ./scripts/write-release-evidence.ps1 -Version $version -Platform macos-universal -Channel preview -Tag $env:RELEASE_TAG -Output "$base-release-evidence.json" -Assets $assets
       - name: Publish GitHub prerelease
@@ -46,8 +46,8 @@ jobs:
         shell: pwsh
         run: |
           $version = (Get-Content macOS/VERSION -Raw).Trim()
-          $base = "dist/TomatoFocus-$version-macos-universal"
-          gh release create $env:GITHUB_REF_NAME --verify-tag --prerelease --generate-notes --title "Tomato Focus for macOS $version Preview" `
+          $base = "dist/Tommi-$version-macos-universal"
+          gh release create $env:GITHUB_REF_NAME --verify-tag --prerelease --generate-notes --notes-file macOS/RELEASE-NOTES.md --title "Tommi for macOS $version Preview" `
             "$base.dmg#macOS Universal DMG" `
             "$base.dmg.sha256#DMG SHA-256" `
             "$base.zip#macOS Universal ZIP" `

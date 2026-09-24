@@ -25,7 +25,7 @@ struct SettingsView: View {
                 VStack(alignment: .leading, spacing: 6) {
                     Text(localized("A little room to focus.", "留一点时间，给专注。"))
                         .font(.system(size: 21, weight: .semibold, design: .rounded))
-                    Text("朱果 · TOMATO FOCUS").font(.system(size: 10, weight: .medium)).tracking(2).opacity(0.48)
+                    Text("朱果 · TOMMI").font(.system(size: 10, weight: .medium)).tracking(2).opacity(0.48)
                 }
             }
             VStack(alignment: .leading, spacing: 12) {

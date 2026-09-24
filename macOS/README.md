@@ -1,8 +1,8 @@
-# Tomato Focus for macOS
+# Tommi for macOS
 
 English | [简体中文](README.zh-CN.md)
 
-The native Mac edition of **朱果 · Tomato Focus**, built with Swift, AppKit and SwiftUI. No Electron runtime or third-party packages. Supports **macOS 13 Ventura or later**, with one universal app for **Apple Silicon and Intel**.
+The native Mac edition of **朱果 · Tommi**, built with Swift, AppKit and SwiftUI. No Electron runtime or third-party packages. Supports **macOS 13 Ventura or later**, with one universal app for **Apple Silicon and Intel**.
 
 ## Install
 
@@ -10,9 +10,11 @@ Download the Mac disk image or ZIP from [GitHub Releases](https://github.com/Dan
 
 Preview releases use `macos-v<version>` tags matching `macOS/VERSION`. The release workflow publishes the DMG, ZIP, checksums, and machine-readable release evidence. Published versions are summarized in the [release operations ledger](../docs/RELEASES.md).
 
-Open the DMG and drag **Tomato Focus.app** into Applications, or copy the app to another writable folder. Open the app; a small tomato appears on your desktop and in the menu bar, without a Dock icon. **Launch at login is enabled by default on the first launch**, including the first launch after upgrading from 1.1.15. You can turn it off in Preferences. macOS may require approval under System Settings → General → Login Items; the app shows the actual registration/approval state and provides a shortcut there. It does not repeatedly re-enable an item you remove in System Settings. Quit an existing copy from its menu-bar menu before replacing it. Settings and active deadlines survive replacement.
+Open the DMG and drag **Tommi.app** into Applications, or copy the app to another writable folder. Open the app; a small tomato appears on your desktop and in the menu bar, without a Dock icon. **Launch at login is enabled by default on the first launch**, including the first launch after upgrading from 1.1.15. You can turn it off in Preferences. macOS may require approval under System Settings → General → Login Items; the app shows the actual registration/approval state and provides a shortcut there. It does not repeatedly re-enable an item you remove in System Settings. Quit an existing copy from its menu-bar menu before replacing it. Settings and active deadlines survive replacement.
 
 This initial Mac edition is **ad-hoc signed, not Developer ID signed or notarized**. macOS may block a downloaded copy. Only if you trust this repository and have checked the download, use Apple's per-app **System Settings → Privacy & Security → Open Anyway** flow. Never disable Gatekeeper or remove quarantine in bulk. See [Apple's guidance](https://support.apple.com/en-us/102445). Organization policies can prevent opening it; there is no automated bypass.
+
+When upgrading from 1.1.16 or earlier, quit the old app and remove **Tomato Focus.app** from Applications before copying **Tommi.app** there, so two differently named copies do not remain. The bundle identifier and `TomatoFocus` settings directory retain their existing names to preserve your settings and deadline. If Login Items still shows the old copy, remove that old entry and re-enable Launch at login in Tommi if you want automatic launch.
 
 ## Use
 

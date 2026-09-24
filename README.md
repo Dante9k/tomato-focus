@@ -127,6 +127,7 @@ The detailed guides below are currently in Chinese.
 - [Contributing](CONTRIBUTING.md)
 - [Security](SECURITY.md)
 - [Changelog](CHANGELOG.md)
+- [Release operations ledger](docs/RELEASES.md)
 - [Artwork and source prompts](assets/ARTWORK.md)
 
 This project currently reserves **all rights** and does not grant an open-source license by default. See [LICENSE](LICENSE).

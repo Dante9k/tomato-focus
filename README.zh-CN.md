@@ -126,6 +126,7 @@ marketing/           宣传视频、封面与发布文案源文件
 - [贡献指南](CONTRIBUTING.md)
 - [安全说明](SECURITY.md)
 - [版本变更](CHANGELOG.md)
+- [发布与部署台账](docs/RELEASES.md)
 - [素材来源与提示词](assets/ARTWORK.md)
 
 本项目目前**保留所有权利**，未默认授予开源许可，详见 [LICENSE](LICENSE)。

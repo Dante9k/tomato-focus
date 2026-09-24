@@ -8,6 +8,8 @@
 
 在 [GitHub Releases](https://github.com/Dante9k/tommi/releases) 下载 Mac DMG 或 ZIP，也可以从成功的 [macOS 构建](https://github.com/Dante9k/tommi/actions/workflows/macos.yml) 下载 `tomato-focus-macos-universal`。
 
+预览版使用与 `macOS/VERSION` 一致的 `macos-v<版本>` 标签。发布流程自动上传 DMG、ZIP、校验文件和机器可读发版证据；已发布版本汇总在[发布与部署台账](../docs/RELEASES.md)。
+
 打开 DMG，把 **Tomato Focus.app** 拖到 Applications，或复制到其他可写目录。运行后会出现桌面番茄和菜单栏图标，不显示 Dock 图标。**首次运行默认开启“登录时启动”**，从 1.1.15 首次升级也会应用此默认值，可随时在偏好设置中关闭。macOS 可能要求在“系统设置 → 通用 → 登录项”批准；程序会显示实际注册／待批准状态，并提供跳转入口。在系统设置中移除后，不会每次启动都重新开启。升级前通过菜单栏正常退出旧版，再替换程序；设置和进行中的计时会保留。
 
 首版为 **临时签名，尚无 Apple Developer ID 签名与公证**。macOS 可能阻止打开下载的程序。只有在确认来源并信任本仓库后，才使用苹果提供的 **系统设置 → 隐私与安全性 → 仍要打开** 单程序授权流程；不关闭 Gatekeeper、不批量移除隔离标记。参阅[苹果说明](https://support.apple.com/zh-cn/102445)。组织管理策略可能禁止运行，本程序不会绕过它。

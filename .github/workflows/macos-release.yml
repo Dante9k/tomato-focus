@@ -1,0 +1,55 @@
+name: Publish macOS preview
+
+on:
+  push:
+    tags:
+      - "macos-v*.*.*"
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    name: Build and publish macOS preview
+    runs-on: macos-14
+    timeout-minutes: 25
+    permissions:
+      contents: write
+    steps:
+      - name: Check out tagged source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Verify tag matches macOS VERSION
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        shell: pwsh
+        run: |
+          $version = (Get-Content macOS/VERSION -Raw).Trim()
+          if ($env:RELEASE_TAG -ne "macos-v$version") {
+            throw "Release tag $env:RELEASE_TAG does not match macOS/VERSION $version."
+          }
+      - name: Build and verify universal package
+        run: bash scripts/build-macos.sh
+      - name: Write release evidence
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        shell: pwsh
+        run: |
+          $version = (Get-Content macOS/VERSION -Raw).Trim()
+          $base = "dist/TomatoFocus-$version-macos-universal"
+          $assets = @("$base.dmg", "$base.dmg.sha256", "$base.zip", "$base.zip.sha256")
+          ./scripts/write-release-evidence.ps1 -Version $version -Platform macos-universal -Channel preview -Tag $env:RELEASE_TAG -Output "$base-release-evidence.json" -Assets $assets
+      - name: Publish GitHub prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: pwsh
+        run: |
+          $version = (Get-Content macOS/VERSION -Raw).Trim()
+          $base = "dist/TomatoFocus-$version-macos-universal"
+          gh release create $env:GITHUB_REF_NAME --verify-tag --prerelease --generate-notes --title "Tomato Focus for macOS $version Preview" `
+            "$base.dmg#macOS Universal DMG" `
+            "$base.dmg.sha256#DMG SHA-256" `
+            "$base.zip#macOS Universal ZIP" `
+            "$base.zip.sha256#ZIP SHA-256" `
+            "$base-release-evidence.json#Release evidence"

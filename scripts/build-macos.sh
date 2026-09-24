@@ -91,7 +91,7 @@ trap 'hdiutil detach "$MOUNT" >/dev/null || true' EXIT
 python3 scripts/check-macos-package.py "$MOUNT/Tommi.app" "$VERSION" --container
 codesign --verify --deep --strict "$MOUNT/Tommi.app"
 # Verify the actual mounted volume label, not just the source command's argument.
-diskutil info -plist "$MOUNT" | python3 -c 'import plistlib,sys; assert plistlib.load(sys.stdin.buffer)["VolumeName"] == "Tommi"'
+diskutil info -plist "$MOUNT" | python3 -c 'import plistlib,sys; assert plistlib.loads(sys.stdin.buffer.read())["VolumeName"] == "Tommi"'
 hdiutil detach "$MOUNT"
 trap - EXIT
 for EXT in zip dmg; do

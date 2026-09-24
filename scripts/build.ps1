@@ -31,7 +31,7 @@ $appArguments += @(Get-ChildItem -LiteralPath $application -Recurse -Filter *.cs
 if ($LASTEXITCODE -ne 0) { throw 'Application compilation failed.' }
 Copy-Item -LiteralPath (Join-Path $application 'App.config') -Destination (Join-Path $output 'Tomato.exe.config') -Force
 
-$testArguments = $common + @('/target:exe', ('/reference:' + (Join-Path $output 'Tomato.exe')), ('/out:' + (Join-Path $output 'Tomato.Verify.exe')))
+$testArguments = $common + @('/target:exe', ('/reference:' + (Join-Path $framework 'System.IO.Compression.dll')), ('/reference:' + (Join-Path $output 'Tomato.exe')), ('/out:' + (Join-Path $output 'Tomato.Verify.exe')))
 $testArguments += @(Get-ChildItem (Join-Path $projectRoot 'tests\Tomato.Focus.Verification') -Filter *.cs | Sort-Object FullName | ForEach-Object { $_.FullName })
 & $compiler $testArguments
 if ($LASTEXITCODE -ne 0) { throw 'Verification compilation failed.' }

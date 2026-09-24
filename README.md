@@ -77,6 +77,8 @@
 
 GitHub Actions 在 Windows 上执行构建、逻辑验证、控件渲染、打包及校验，并保存图形安装包、便携包及校验文件。所有版本均从 `assets/brand/tomato-focus.png` 自动导出品牌图标，应用、快捷方式及安装窗口默认沿用这套品牌；版本号来自 `VERSION`，无需逐版本嵌入或配置。桌面动画验收需在可交互 Windows 会话中执行。
 
+推送到 `main` 后，GitHub Actions 会从经过白名单校验的网站包自动发布 GitHub Pages 官网。创建与 `VERSION` 一致的 `v<版本>` 标签后，会自动建立 GitHub Release，并上传安装包、便携包、网站包及各自的 SHA-256 校验文件。
+
 ## 项目结构
 
 ```text

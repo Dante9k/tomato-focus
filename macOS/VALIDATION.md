@@ -5,8 +5,9 @@ The Mac edition shares the existing tomato artwork, vector numeral paths, detent
 ## Automated coverage
 
 - Domain tests: deadline persistence and sleep/expiry math; backward-compatible settings defaults; duration limits; horizontal/vertical shake, small jitter, slow direction changes, ordinary drag; wheel wrapping, inertia and reduced-motion settling; ballistic landing, one bounce, two impact events and bounded lifetime.
-- Native UI verification (isolated state): silent presets, wheel-to-duration event, preloaded audio, 250 → 125-point transition, fixed upper-right anchor, fruit opacity, hidden editor, hide/show while counting, actual elapsed deadline, reminder at the same position, dismissal, cancel/restore and persisted state. PNG captures exercise the actual AppKit view.
+- Native UI verification (isolated state): silent presets, wheel-to-duration event, preloaded audio, 250 → 125-point transition, fixed upper-right anchor, fruit opacity (including rendered pixel alpha), hidden editor, hide/show while counting, actual elapsed deadline, reminder at the same position, dismissal, cancel/restore and persisted state. PNG captures exercise the actual AppKit view and SwiftUI preferences.
 - Package: both Mach-O architectures, macOS deployment target in Info.plist, strict ad-hoc signature verification, exact resource file allowlist, DMG/ZIP and SHA-256.
+- Cold-launch checks start the packaged app again with isolated active and overdue deadlines, verifying read-only countdown restoration and immediate reminder restoration. The normal 32% renderer is exercised even when a hosted runner enables Reduce Transparency; the test does not change the runner's system preferences.
 
 ## Physical Mac checks still required
 

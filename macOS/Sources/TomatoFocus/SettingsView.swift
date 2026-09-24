@@ -45,7 +45,8 @@ struct SettingsView: View {
                 setting(localized("Throw & landing", "投掷与落地"), subtitle: localized("Sound follows each little tomato", "声音跟随每一颗小番茄"), value: $effects)
                 setting(localized("Trackpad haptics", "触控板轻触反馈"), subtitle: localized("On compatible Force Touch devices", "由兼容的 Force Touch 设备提供"), value: $haptics)
             }
-            .padding(18).background(.white.opacity(0.045), in: RoundedRectangle(cornerRadius: 18))
+            .padding(18).frame(maxWidth: .infinity, alignment: .leading)
+            .background(.white.opacity(0.045), in: RoundedRectangle(cornerRadius: 18))
             HStack {
                 Button(previewing ? localized("Stop preview", "停止预览") : localized("Try the reminder", "看看休息提醒")) {
                     if previewing { controller.dismiss(); previewing = false }
@@ -57,8 +58,9 @@ struct SettingsView: View {
             }
             Text(localized("Double-click the stem to start. Shake the tomato to cancel.\nEverything stays on this Mac.", "双击绿蒂开始，摇晃番茄取消。\n所有数据只保存在这台 Mac 上。"))
                 .font(.system(size: 11)).lineSpacing(4).opacity(0.45)
+                .fixedSize(horizontal: false, vertical: true)
         }
-        .padding(28).frame(width: 420).foregroundStyle(cream)
+        .padding(28).frame(width: 420).fixedSize(horizontal: false, vertical: true).foregroundStyle(cream)
         .background(LinearGradient(colors: [Color(red: 0.08, green: 0.16, blue: 0.14), Color(red: 0.035, green: 0.09, blue: 0.08)], startPoint: .topLeading, endPoint: .bottomTrailing))
         .tint(coral).preferredColorScheme(.dark)
         .onChange(of: wheel) { controller.state.wheelSound = $0; controller.save() }
@@ -77,11 +79,13 @@ struct SettingsView: View {
         }.buttonStyle(.plain).disabled(controller.isFocusing)
     }
     private func setting(_ title: String, subtitle: String, value: Binding<Bool>) -> some View {
-        Toggle(isOn: value) {
+        HStack {
             VStack(alignment: .leading, spacing: 4) {
                 Text(title).font(.system(size: 13, weight: .medium))
                 Text(subtitle).font(.system(size: 10)).opacity(0.45)
             }
-        }.toggleStyle(.switch).controlSize(.small)
+            Spacer(minLength: 12)
+            Toggle(title, isOn: value).labelsHidden().toggleStyle(.switch).controlSize(.small)
+        }
     }
 }

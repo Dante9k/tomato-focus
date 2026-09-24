@@ -51,6 +51,7 @@ final class AppController: NSObject, NSApplicationDelegate, NSWindowDelegate, NS
         panel.orderFrontRegardless()
         tickTimer = Timer.scheduledTimer(withTimeInterval: 0.2, repeats: true) { [weak self] _ in self?.tick() }
         NSWorkspace.shared.notificationCenter.addObserver(self, selector: #selector(woke), name: NSWorkspace.didWakeNotification, object: nil)
+        NSWorkspace.shared.notificationCenter.addObserver(self, selector: #selector(accessibilityChanged), name: NSWorkspace.accessibilityDisplayOptionsDidChangeNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(screensChanged), name: NSApplication.didChangeScreenParametersNotification, object: nil)
         if let directory = verificationDirectory { UIVerification.run(controller: self, directory: directory) }
     }
@@ -60,11 +61,18 @@ final class AppController: NSObject, NSApplicationDelegate, NSWindowDelegate, NS
         overlay?.stop(); feedback.stop(); savePosition()
     }
     @objc private func woke() { tick() }
+    @objc private func accessibilityChanged() {
+        animate(focus: isFocusing, immediate: true)
+        tomato.wheels.forEach { $0.stop() }
+    }
     @objc private func screensChanged() { ensureVisible(); if isAlarming { overlay?.stop(); makeOverlay() } }
     private func tick() {
         if isFocusing {
             let remaining = state.remaining()
-            if remaining != tomato.remaining { tomato.remaining = remaining; tomato.needsDisplay = true }
+            if remaining != tomato.remaining {
+                tomato.remaining = remaining; tomato.needsDisplay = true
+                tomato.setAccessibilityValue(localized("Remaining: ", "剩余：") + timeText(remaining))
+            }
             if remaining == 0 { alarm() }
         }
         status?.button?.toolTip = isFocusing ? localized("Remaining: ", "剩余：") + timeText(state.remaining()) : "朱果 · Tomato Focus"
@@ -129,7 +137,11 @@ final class AppController: NSObject, NSApplicationDelegate, NSWindowDelegate, NS
         refreshSettings(); NSApp.activate(ignoringOtherApps: true); settings?.makeKeyAndOrderFront(nil)
     }
     private func refreshSettings() {
-        if let settings { settings.contentView = NSHostingView(rootView: SettingsView(controller: self)) }
+        if let settings {
+            let host = NSHostingView(rootView: SettingsView(controller: self))
+            settings.contentView = host
+            settings.setContentSize(host.fittingSize)
+        }
     }
     func menuWillOpen(_ menu: NSMenu) { rebuildMenu(menu) }
     private func rebuildMenu(_ menu: NSMenu) {

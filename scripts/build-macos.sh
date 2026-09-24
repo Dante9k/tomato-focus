@@ -51,6 +51,19 @@ codesign --force --sign - --timestamp=none "$APP"
 codesign --verify --deep --strict --verbose=2 "$APP"
 lipo "$CONTENTS/MacOS/TomatoFocus" -verify_arch arm64 x86_64
 "$CONTENTS/MacOS/TomatoFocus" --verify-ui "$BUILD/verification"
+python3 - "$BUILD/verification" <<'PY'
+import datetime
+import json
+import pathlib
+import sys
+for name, seconds in [("resume", 30), ("overdue", -30)]:
+    directory = pathlib.Path(sys.argv[1]) / name
+    directory.mkdir(parents=True, exist_ok=True)
+    deadline = (datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(seconds=seconds)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    (directory / "state.json").write_text(json.dumps({"duration": 1500, "deadline": deadline, "completionSound": False, "effectsSound": False, "haptics": False}))
+PY
+"$CONTENTS/MacOS/TomatoFocus" --verify-ui "$BUILD/verification/resume"
+"$CONTENTS/MacOS/TomatoFocus" --verify-ui "$BUILD/verification/overdue"
 # Rebuilding must not silently ship unexpected resources from an older build.
 python3 scripts/check-macos-package.py "$APP" "$VERSION"
 NAME="TomatoFocus-$VERSION-macos-universal"

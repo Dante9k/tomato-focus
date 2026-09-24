@@ -2,7 +2,7 @@
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
-VERSION="$(tr -d '\r\n' < VERSION)"
+VERSION="$(tr -d '\r\n' < macOS/VERSION)"
 BUILD="$ROOT/build/macos"
 DIST="$ROOT/dist"
 APP="$BUILD/Tomato Focus.app"
@@ -60,10 +60,13 @@ for name, seconds in [("resume", 30), ("overdue", -30)]:
     directory = pathlib.Path(sys.argv[1]) / name
     directory.mkdir(parents=True, exist_ok=True)
     deadline = (datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(seconds=seconds)).strftime("%Y-%m-%dT%H:%M:%SZ")
-    (directory / "state.json").write_text(json.dumps({"duration": 1500, "deadline": deadline, "completionSound": False, "effectsSound": False, "haptics": False}))
+    (directory / "state.json").write_text(json.dumps({"duration": 1500, "deadline": deadline, "x": 100, "y": 200, "completionSound": False, "effectsSound": False, "haptics": False}))
 PY
 "$CONTENTS/MacOS/TomatoFocus" --verify-ui "$BUILD/verification/resume"
 "$CONTENTS/MacOS/TomatoFocus" --verify-ui "$BUILD/verification/overdue"
+if [ "${GITHUB_ACTIONS:-}" = "true" ]; then
+    "$CONTENTS/MacOS/TomatoFocus" --verify-ui "$BUILD/verification/login-service" --verify-login-service
+fi
 # Rebuilding must not silently ship unexpected resources from an older build.
 python3 scripts/check-macos-package.py "$APP" "$VERSION"
 NAME="TomatoFocus-$VERSION-macos-universal"

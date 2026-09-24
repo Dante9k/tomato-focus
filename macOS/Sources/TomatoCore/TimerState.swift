@@ -9,6 +9,8 @@ public struct TimerState: Codable, Equatable {
     public var completionSound = true
     public var effectsSound = true
     public var haptics = true
+    public var launchAtLogin = true
+    public var loginItemInitialized = false
     public init() {}
 
     public func remaining(at now: Date = Date()) -> Int {
@@ -26,6 +28,7 @@ public struct TimerState: Codable, Equatable {
     // Missing fields keep their defaults so later versions can extend this file safely.
     enum CodingKeys: String, CodingKey {
         case duration, deadline, x, y, wheelSound, completionSound, effectsSound, haptics
+        case launchAtLogin, loginItemInitialized
     }
     public init(from decoder: Decoder) throws {
         self.init()
@@ -40,6 +43,8 @@ public struct TimerState: Codable, Equatable {
         completionSound = try c.decodeIfPresent(Bool.self, forKey: .completionSound) ?? completionSound
         effectsSound = try c.decodeIfPresent(Bool.self, forKey: .effectsSound) ?? effectsSound
         haptics = try c.decodeIfPresent(Bool.self, forKey: .haptics) ?? haptics
+        launchAtLogin = try c.decodeIfPresent(Bool.self, forKey: .launchAtLogin) ?? launchAtLogin
+        loginItemInitialized = try c.decodeIfPresent(Bool.self, forKey: .loginItemInitialized) ?? loginItemInitialized
     }
 }
 

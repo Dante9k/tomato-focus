@@ -19,6 +19,7 @@ final class TomatoView: NSView {
     override var acceptsFirstResponder: Bool { true }
     override init(frame: NSRect) {
         super.init(frame: frame)
+        setBoundsSize(NSSize(width: WidgetLayout.canvasSize, height: WidgetLayout.canvasSize))
         toolTip = localized("Double-click the stem to focus · Drag to move · Shake to cancel", "双击绿蒂开始 · 拖动移动 · 专注时摇晃取消")
         for (i, wheel) in wheels.enumerated() {
             wheel.frame.origin = NSPoint(x: 53 + i * 48, y: 100)
@@ -33,6 +34,11 @@ final class TomatoView: NSView {
         setAccessibilityLabel(localized("Tomato Focus", "朱果番茄钟"))
     }
     required init?(coder: NSCoder) { fatalError("init(coder:) is unavailable") }
+    override func setFrameSize(_ newSize: NSSize) {
+        super.setFrameSize(newSize)
+        // Scale drawing, child controls and hit testing together, rather than shrinking art alone.
+        setBoundsSize(NSSize(width: WidgetLayout.canvasSize, height: WidgetLayout.canvasSize))
+    }
     func setDuration(_ duration: Int) { wheels[0].set(duration / 3600); wheels[1].set(duration / 60 % 60); wheels[2].set(duration % 60) }
     var duration: Int { wheels[0].model.value * 3600 + wheels[1].model.value * 60 + wheels[2].model.value }
     func resetGesture() { shake.reset(); dragging = false }

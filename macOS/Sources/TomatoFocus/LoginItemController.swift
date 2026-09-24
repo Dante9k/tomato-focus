@@ -31,7 +31,7 @@ final class LoginItemController: ObservableObject {
         switch status {
         case .enabled: return localized("Your tomato will appear when you log in", "登录 Mac 时自动显示番茄")
         case .requiresApproval: return localized("Waiting for approval in System Settings", "等待在系统设置中批准")
-        case .notRegistered: return localized("Open Tomato Focus yourself when needed", "需要时手动打开朱果")
+        case .notRegistered: return localized("Open Tommi yourself when needed", "需要时手动打开朱果")
         case .notFound: return localized("Move the app to Applications, then enable again", "请将程序移入应用程序目录后重新开启")
         }
     }

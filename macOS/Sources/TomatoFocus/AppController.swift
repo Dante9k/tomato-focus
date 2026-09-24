@@ -34,7 +34,7 @@ final class AppController: NSObject, NSApplicationDelegate, NSWindowDelegate, NS
         save()
         let editingSize = WidgetLayout.editingSize
         panel = TomatoPanel(contentRect: NSRect(x: 0, y: 0, width: editingSize, height: editingSize), styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false)
-        panel.title = "朱果 · Tomato Focus"; panel.backgroundColor = .clear; panel.isOpaque = false
+        panel.title = "朱果 · Tommi"; panel.backgroundColor = .clear; panel.isOpaque = false
         panel.hasShadow = false; panel.level = NSWindow.Level(rawValue: NSWindow.Level.floating.rawValue + 1)
         panel.hidesOnDeactivate = false; panel.isReleasedWhenClosed = false; panel.animationBehavior = .none
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]; panel.delegate = self
@@ -48,7 +48,7 @@ final class AppController: NSObject, NSApplicationDelegate, NSWindowDelegate, NS
         ensureVisible()
         status = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         status.button?.image = Artwork.tomato.copy() as? NSImage; status.button?.image?.size = NSSize(width: 23, height: 23)
-        status.button?.toolTip = "朱果 · Tomato Focus"
+        status.button?.toolTip = "朱果 · Tommi"
         let menu = NSMenu(); menu.delegate = self; status.menu = menu; rebuildMenu(menu)
         if state.deadline != nil {
             tomato.remaining = state.remaining()
@@ -83,7 +83,7 @@ final class AppController: NSObject, NSApplicationDelegate, NSWindowDelegate, NS
             }
             if remaining == 0 { alarm() }
         }
-        status?.button?.toolTip = isFocusing ? localized("Remaining: ", "剩余：") + timeText(state.remaining()) : "朱果 · Tomato Focus"
+        status?.button?.toolTip = isFocusing ? localized("Remaining: ", "剩余：") + timeText(state.remaining()) : "朱果 · Tommi"
     }
     func edited() {
         guard !isFocusing && !isAlarming else { return }
@@ -138,7 +138,7 @@ final class AppController: NSObject, NSApplicationDelegate, NSWindowDelegate, NS
         loginItem.refresh()
         if settings == nil {
             let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 476, height: 630), styleMask: [.titled, .closable, .fullSizeContentView], backing: .buffered, defer: false)
-            window.title = localized("Tomato Focus · Preferences", "朱果 · 偏好设置")
+            window.title = localized("Tommi · Preferences", "朱果 · 偏好设置")
             window.titlebarAppearsTransparent = true; window.titleVisibility = .hidden
             window.isReleasedWhenClosed = false; window.backgroundColor = NSColor(calibratedRed: 0.08, green: 0.16, blue: 0.14, alpha: 1)
             window.center(); settings = window
@@ -159,7 +159,7 @@ final class AppController: NSObject, NSApplicationDelegate, NSWindowDelegate, NS
     func menuWillOpen(_ menu: NSMenu) { rebuildMenu(menu) }
     private func rebuildMenu(_ menu: NSMenu) {
         menu.removeAllItems()
-        let title = isAlarming ? localized("Time for a break", "该休息了") : isFocusing ? timeText(state.remaining()) : "朱果 · Tomato Focus"
+        let title = isAlarming ? localized("Time for a break", "该休息了") : isFocusing ? timeText(state.remaining()) : "朱果 · Tommi"
         let heading = NSMenuItem(title: title, action: nil, keyEquivalent: ""); heading.isEnabled = false; menu.addItem(heading)
         menu.addItem(.separator())
         func item(_ title: String, _ selector: Selector, _ key: String = "") { let i = NSMenuItem(title: title, action: selector, keyEquivalent: key); i.target = self; menu.addItem(i) }
@@ -168,7 +168,7 @@ final class AppController: NSObject, NSApplicationDelegate, NSWindowDelegate, NS
         else if isFocusing { item(localized("Cancel focus", "取消专注"), #selector(cancel)); item(localized("Hide tomato", "隐藏番茄"), #selector(hide)) }
         else { item(localized("Start focus", "开始专注"), #selector(start)) }
         item(localized("Preferences…", "偏好设置…"), #selector(showSettings), ",")
-        menu.addItem(.separator()); item(localized("Quit Tomato Focus", "退出朱果"), #selector(quit), "q")
+        menu.addItem(.separator()); item(localized("Quit Tommi", "退出朱果"), #selector(quit), "q")
     }
     private func animate(focus: Bool, immediate: Bool = false) {
         appearanceTimer?.invalidate(); tomato.resetGesture()
@@ -214,5 +214,5 @@ final class AppController: NSObject, NSApplicationDelegate, NSWindowDelegate, NS
         if let frame = frames.first { panel.setFrameOrigin(NSPoint(x: frame.maxX - panel.frame.width - 30, y: frame.maxY - panel.frame.height - 30)) }
     }
     private func timeText(_ seconds: Int) -> String { String(format: "%02d:%02d:%02d", seconds / 3600, seconds / 60 % 60, seconds % 60) }
-    private func showError(_ text: String) { let alert = NSAlert(); alert.messageText = "Tomato Focus"; alert.informativeText = text; alert.runModal() }
+    private func showError(_ text: String) { let alert = NSAlert(); alert.messageText = "Tommi"; alert.informativeText = text; alert.runModal() }
 }

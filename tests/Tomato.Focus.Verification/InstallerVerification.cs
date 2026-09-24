@@ -192,9 +192,9 @@ namespace Tomato.Tests
                     return false;
                 };
                 string errorMessage = null;
-                Action<string> reportError = delegate (string message)
+                Action<Exception> reportError = delegate (Exception error)
                 {
-                    errorMessage = message;
+                    errorMessage = error.ToString();
                 };
                 using (var form = (Form)Call("CreateInstallForm", "test", install, running, reportError))
                 {

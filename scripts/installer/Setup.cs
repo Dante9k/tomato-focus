@@ -86,11 +86,11 @@ internal static class Setup
         form = CreateInstallForm(version,
             delegate (string target, bool desktop) { Install(bytes, target, desktop); },
             delegate { return Process.GetProcessesByName("Tomato").Length != 0; },
-            delegate (string message) { MessageBox.Show(form, message, "安装未完成", MessageBoxButtons.OK, MessageBoxIcon.Warning); });
+            delegate (Exception error) { MessageBox.Show(form, error.GetBaseException().Message, "安装未完成", MessageBoxButtons.OK, MessageBoxIcon.Warning); });
         return form;
     }
 
-    private static Form CreateInstallForm(string version, Action<string, bool> installAction, Func<bool> isRunning, Action<string> reportError)
+    private static Form CreateInstallForm(string version, Action<string, bool> installAction, Func<bool> isRunning, Action<Exception> reportError)
     {
         var ink = Color.FromArgb(36, 44, 56);
         var muted = Color.FromArgb(95, 105, 119);
@@ -175,8 +175,8 @@ internal static class Setup
                 cancel.Visible = false;
                 status.Text = "卸载时退出朱果，删除安装文件夹及快捷方式即可。";
             }
-            catch (UnauthorizedAccessException) { reportError("无法写入所选位置。请使用“浏览”选择有写入权限的文件夹。"); }
-            catch (Exception ex) { reportError(ex.Message); }
+            catch (UnauthorizedAccessException) { reportError(new IOException("无法写入所选位置。请使用“浏览”选择有写入权限的文件夹。")); }
+            catch (Exception ex) { reportError(ex); }
             finally { install.Enabled = true; path.ReadOnly = installed; browse.Enabled = !installed; }
         };
         form.Controls.AddRange(new Control[] { title, description, versionLabel, separator, pathLabel, path, browse, pathHint, desktop, status, install, cancel });

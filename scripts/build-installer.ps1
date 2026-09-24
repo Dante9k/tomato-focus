@@ -25,8 +25,8 @@ if (!$functional.WaitForExit(120000)) {
     $functional.Kill()
     throw 'Installer verification exceeded two minutes. Only its isolated verification process was stopped.'
 }
+if (Test-Path -LiteralPath (Join-Path $root 'build/installer-results.txt')) { Get-Content -LiteralPath (Join-Path $root 'build/installer-results.txt') -Encoding UTF8 }
 if ($functional.ExitCode -ne 0) { throw 'Installer functional verification failed. See build/installer-results.txt.' }
-Get-Content -LiteralPath (Join-Path $root 'build/installer-results.txt') -Encoding UTF8
 $previewPath = Join-Path $root 'build/installer-preview.png'
 $preview = Start-Process -FilePath $setup -ArgumentList @('--render-preview', ('"' + $previewPath + '"')) -WindowStyle Hidden -Wait -PassThru
 if ($preview.ExitCode -ne 0 -or !(Test-Path -LiteralPath $previewPath)) { throw 'Installer preview rendering failed.' }

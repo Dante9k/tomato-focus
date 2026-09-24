@@ -11,6 +11,8 @@
 
 ## 工作流程
 
+Mac 版位于 `macOS/`，需要 macOS 13 及以上与 Swift 5.9 / Xcode 命令行工具。在 Mac 运行 `bash scripts/build-macos.sh` 完成领域测试、双架构编译、隔离启动验证、签名校验和 DMG / ZIP 打包；打包检查使用系统 Python 3 标准库，不需要第三方包。领域组件在 `TomatoCore`，窗口、声音与输入在 `TomatoFocus`。不要把 Mac 设置 JSON、Swift 构建缓存或签名资料提交到仓库。真实触控板与显示器验收项目见 [macOS/VALIDATION.md](macOS/VALIDATION.md)。以下流程适用于 Windows 项目。
+
 1. 从默认分支创建独立功能分支，变更限定于一个明确目的。
 2. 遵守 `.editorconfig`，使用 PowerShell 7 运行 `./scripts/format-code.ps1` 统一格式。领域逻辑不直接访问窗口、文件系统或系统托盘。
 3. 运行 `./build.ps1 -Test`；界面变化再运行 `./build/Tomato.Verify.exe --render-preview` 并检查图片。

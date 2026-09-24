@@ -27,3 +27,6 @@ state.xml
 node_modules/
 .venv/
 venv/
+macOS/.build/
+macOS/.swiftpm/
+.DS_Store

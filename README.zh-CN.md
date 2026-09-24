@@ -6,7 +6,9 @@
 
 **一颗番茄，一段完整的专注。**
 
-适用于 Windows 的透明桌面番茄钟。圆润软陶风格、细腻柔光与紧凑尺寸，中央时间滚轮支持惯性滑动；时间到后，小番茄从当前番茄所在位置持续抛出，用轻巧的动画提醒你休息。
+适用于 Windows 和 macOS 的透明桌面番茄钟。圆润软陶风格、细腻柔光与紧凑尺寸，中央时间滚轮支持惯性滑动；时间到后，小番茄从当前番茄所在位置持续抛出，用轻巧的动画提醒你休息。
+
+**Mac 版：**[原生 macOS 版安装与使用](https://github.com/Dante9k/tomato-focus/blob/main/macOS/README.zh-CN.md)，支持 macOS 13 及以上、Apple Silicon 和 Intel。首版为临时签名，尚未完成苹果公证。以下为 Windows 使用说明。
 
 ![朱果番茄钟](docs/images/preview.png)
 

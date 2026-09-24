@@ -1,0 +1,41 @@
+name: macOS quality
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  macos:
+    name: macOS build and verification (${{ matrix.runner }})
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [macos-14, macos-15-intel]
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Build, test and package universal app
+        run: bash scripts/build-macos.sh
+      - name: Upload Mac app and disk image
+        if: matrix.runner == 'macos-14'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: tomato-focus-macos-universal
+          path: |
+            dist/*-macos-universal.*
+          if-no-files-found: error
+      - name: Upload verification previews
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: macos-verification-${{ matrix.runner }}
+          path: build/macos/verification/
+          if-no-files-found: ignore

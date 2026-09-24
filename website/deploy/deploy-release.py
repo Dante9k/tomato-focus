@@ -68,6 +68,7 @@ def main():
                 raise ValueError('Unsafe archive path')
             allowed = name in ('index.html', 'style.css', 'app.js', 'release.js', 'MANIFEST.sha256', 'assets/tomato.png', 'assets/favicon.ico', 'downloads/SHA256SUMS.txt')
             allowed = allowed or bool(re.fullmatch(r'downloads/TomatoFocus-\d+\.\d+\.\d+-(?:Setup\.exe|win-x64\.zip)', name))
+            allowed = allowed or name in ('media/tomato.webp', 'media/timer-edit.webp', 'media/timer-focus.webp', 'media/film-zh.webp', 'media/film-en.webp', 'media/film-zh.mp4', 'media/film-en.mp4')
             if not allowed:
                 raise ValueError('Unexpected public file: ' + name)
         manifest = {}

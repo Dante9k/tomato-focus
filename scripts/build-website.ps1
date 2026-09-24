@@ -1,14 +1,21 @@
 [CmdletBinding()]
-param()
+param([switch]$UseExistingApplicationPackage)
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 $root = Split-Path $PSScriptRoot -Parent
-& (Join-Path $PSScriptRoot 'package.ps1')
+if (-not $UseExistingApplicationPackage) { & (Join-Path $PSScriptRoot 'package.ps1') }
 $version = (Get-Content -LiteralPath (Join-Path $root 'VERSION') -Raw).Trim()
 $zipName = "TomatoFocus-$version-win-x64.zip"
 $setupName = "TomatoFocus-$version-Setup.exe"
 $zip = Join-Path $root "dist/$zipName"
 $setup = Join-Path $root "dist/$setupName"
+if ($UseExistingApplicationPackage) {
+    # Website-only changes can reuse an already built release, after checking both files.
+    foreach ($artifact in @($zip, $setup)) {
+        $recorded = ((Get-Content -LiteralPath ($artifact + '.sha256') -Raw).Trim() -split '\s+')[0]
+        if ($recorded -notmatch '^[a-fA-F0-9]{64}$' -or (Get-FileHash -LiteralPath $artifact -Algorithm SHA256).Hash -ne $recorded) { throw "Application package checksum mismatch: $artifact" }
+    }
+}
 $site = Join-Path $root 'website'
 New-Item -ItemType Directory -Force -Path (Join-Path $site 'assets') | Out-Null
 Copy-Item -LiteralPath (Join-Path $root 'assets/tomato-cute.png') -Destination (Join-Path $site 'assets/tomato.png') -Force
@@ -28,6 +35,7 @@ $html = $html -replace 'v\d+\.\d+\.\d+ · Windows', "v$version · Windows"
 [IO.File]::WriteAllText($htmlPath, $html, (New-Object Text.UTF8Encoding($false)))
 # Package only public files: never include server configuration, source, or credentials.
 $publicFiles = @('index.html', 'style.css', 'app.js', 'release.js', 'assets/tomato.png', 'assets/favicon.ico', 'downloads/SHA256SUMS.txt', "downloads/$setupName", "downloads/$zipName")
+$publicFiles += @('media/tomato.webp', 'media/timer-edit.webp', 'media/timer-focus.webp', 'media/film-zh.webp', 'media/film-en.webp', 'media/film-zh.mp4', 'media/film-en.mp4')
 $manifest = foreach ($name in $publicFiles) { (Get-FileHash -LiteralPath (Join-Path $site $name) -Algorithm SHA256).Hash.ToLowerInvariant() + '  ' + $name }
 $manifest | Set-Content -LiteralPath (Join-Path $site 'MANIFEST.sha256') -Encoding ASCII
 $siteZip = Join-Path $root "dist/TomatoFocus-website-$version.zip"
@@ -41,4 +49,4 @@ try {
 } finally { $archive.Dispose(); $stream.Dispose() }
 ((Get-FileHash -LiteralPath $siteZip -Algorithm SHA256).Hash + '  ' + [IO.Path]::GetFileName($siteZip)) | Set-Content -LiteralPath ($siteZip + '.sha256') -Encoding ASCII
 & (Join-Path $PSScriptRoot 'check-website-package.ps1')
-Write-Host "PASS installer payload verified; website bundle created: $siteZip"
+Write-Host "PASS public website bundle and file checksums verified: $siteZip"

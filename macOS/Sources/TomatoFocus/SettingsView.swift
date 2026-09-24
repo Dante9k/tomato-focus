@@ -52,7 +52,7 @@ struct SettingsView: View {
                     HStack(spacing: 18) {
                         Button(localized("Login Items…", "打开系统登录项…")) { loginItem.openSystemSettings() }
                         if loginItem.errorMessage != nil || loginItem.status == .notFound {
-                            Button(localized("Try again", "重试")) { controller.setLaunchAtLogin(controller.state.launchAtLogin) }
+                            Button(localized("Try again", "重试")) { controller.setLaunchAtLogin(loginItem.requestedEnabled) }
                         }
                     }.font(.system(size: 11)).buttonStyle(.plain).foregroundStyle(coral)
                 }

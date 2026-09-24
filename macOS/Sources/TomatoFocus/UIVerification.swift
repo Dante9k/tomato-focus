@@ -1,4 +1,5 @@
 import AppKit
+import CoreServices
 import TomatoCore
 
 /// UI checks exercise the preference without changing the build machine's login items.
@@ -19,8 +20,11 @@ enum UIVerification {
         }
         if CommandLine.arguments.contains("--verify-login-service") {
             require(ProcessInfo.processInfo.environment["GITHUB_ACTIONS"] == "true", "System login-item verification is restricted to disposable CI Macs")
+            // Normal Finder launches register the bundle with Launch Services. CI starts the
+            // executable directly, so reproduce that public registration step before the API test.
+            require(LSRegisterURL(Bundle.main.bundleURL as CFURL, true) == noErr, "Launch Services bundle registration")
             let service = MacLoginItemService()
-            require(service.status == .notRegistered, "Do not modify a pre-existing login item")
+            require(service.status == .notRegistered || service.status == .notFound, "Do not modify a pre-existing login item: \(service.status)")
             do {
                 try service.register()
                 defer { try? service.unregister() }

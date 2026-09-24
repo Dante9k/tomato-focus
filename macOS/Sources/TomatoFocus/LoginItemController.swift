@@ -21,6 +21,7 @@ final class LoginItemController: ObservableObject {
     private let service: LoginItemService
     @Published private(set) var status: LoginItemStatus
     @Published private(set) var errorMessage: String?
+    private(set) var requestedEnabled = true
 
     init(service: LoginItemService) { self.service = service; status = service.status }
     var isEnabled: Bool { status == .enabled || status == .requiresApproval }
@@ -35,11 +36,13 @@ final class LoginItemController: ObservableObject {
         }
     }
     func initialize(state: inout TimerState) {
+        requestedEnabled = state.launchAtLogin
         do { try LoginItemPolicy.initialize(state: &state, service: service) }
         catch { record(error) }
         refresh()
     }
     func setEnabled(_ enabled: Bool, state: inout TimerState) {
+        requestedEnabled = enabled
         errorMessage = nil
         do { try LoginItemPolicy.setEnabled(enabled, state: &state, service: service) }
         catch { record(error) }

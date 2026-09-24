@@ -40,4 +40,4 @@ bash scripts/build-macos.sh
 
 CI 在 Apple Silicon 和 Intel 运行器上分别启动程序。这不能代替真实设备对音效质感、Force Touch、物理输入、帧率、多显示器、桌面空间和全屏应用组合的验收；详见[验证记录](VALIDATION.md)。
 
-适用仓库[许可证](../LICENSE)。三段处理后的落地声音保留 Kenney CC0 说明，并随程序分发。
+适用仓库[许可证](https://github.com/Dante9k/tomato-focus/blob/main/LICENSE)。三段处理后的落地声音保留 Kenney CC0 说明，并随程序分发。

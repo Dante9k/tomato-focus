@@ -7,10 +7,15 @@ enum UIVerification {
         func require(_ condition: @autoclosure () -> Bool, _ message: String) {
             if !condition() { fputs("UI verification failed: \(message)\n", stderr); exit(1) }
         }
-        func capture(_ name: String) {
-            c.tomato.displayIfNeeded()
-            guard let bitmap = c.tomato.bitmapImageRepForCachingDisplay(in: c.tomato.bounds) else { require(false, "No bitmap"); return }
-            c.tomato.cacheDisplay(in: c.tomato.bounds, to: bitmap)
+        func capture(_ name: String, view: NSView? = nil) {
+            let view = view ?? c.tomato!
+            view.displayIfNeeded()
+            guard let bitmap = view.bitmapImageRepForCachingDisplay(in: view.bounds) else { require(false, "No bitmap"); return }
+            view.cacheDisplay(in: view.bounds, to: bitmap)
+            if name == "macos-focus" && !NSWorkspace.shared.accessibilityDisplayShouldReduceTransparency {
+                let alpha = bitmap.colorAt(x: bitmap.pixelsWide / 2, y: bitmap.pixelsHigh / 2)?.alphaComponent ?? 1
+                require(alpha > 0.25 && alpha < 0.4, "Actual fruit pixels must remain translucent across redraws")
+            }
             do {
                 try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
                 guard let data = bitmap.representation(using: .png, properties: [:]) else { require(false, "No PNG"); return }
@@ -42,7 +47,13 @@ enum UIVerification {
             require(!c.isAlarming && c.state.deadline == nil, "Dismiss reminder")
             c.applyPreset(90)
         }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 3.6) { c.start(); c.cancel() }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3.6) {
+            c.showSettings()
+            if let settings = NSApp.windows.first(where: { $0 !== c.panel && $0.styleMask.contains(.titled) }), let view = settings.contentView {
+                view.layoutSubtreeIfNeeded(); capture("macos-settings", view: view); settings.orderOut(nil)
+            } else { require(false, "Preferences window") }
+            c.start(); c.cancel()
+        }
         DispatchQueue.main.asyncAfter(deadline: .now() + 4.3) {
             require(!c.isFocusing && c.panel.frame.width == 250 && c.tomato.duration == 90, "Cancel restores editor")
             do {

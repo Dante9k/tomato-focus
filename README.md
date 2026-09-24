@@ -8,7 +8,7 @@ English | [简体中文](README.zh-CN.md)
 
 A transparent desktop Pomodoro timer for Windows and macOS, with a rounded clay-style tomato, soft lighting, and inertial time wheels. When time is up, little tomatoes fly from the widget's current position across your desktop to remind you to take a break.
 
-**Mac edition:** [Install and use the native macOS app](macOS/README.md) · macOS 13+, Apple Silicon and Intel. The first Mac package is ad-hoc signed and has not been notarized. The Windows instructions follow below.
+**Mac edition:** [Install and use the native macOS app](https://github.com/Dante9k/tomato-focus/tree/main/macOS) · macOS 13+, Apple Silicon and Intel. The first Mac package is ad-hoc signed and has not been notarized. The Windows instructions follow below.
 
 ![Tomato Focus desktop widget](docs/images/preview.png)
 

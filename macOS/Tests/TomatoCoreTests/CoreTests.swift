@@ -19,6 +19,8 @@ final class CoreTests: XCTestCase {
     func testSettingsDefaultsAndDurationBounds() throws {
         let state = try JSONDecoder().decode(TimerState.self, from: Data("{\"duration\":999999}".utf8))
         XCTAssertEqual(state.duration, 86399); XCTAssertTrue(state.wheelSound)
+        let offscreen = try JSONDecoder().decode(TimerState.self, from: Data("{\"x\":1e100,\"y\":-1e100}".utf8))
+        XCTAssertNil(offscreen.x); XCTAssertNil(offscreen.y)
     }
     func testShakeRequiresThreeLargeReversals() {
         var s = ShakeDetector(); s.reset()

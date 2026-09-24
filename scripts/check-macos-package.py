@@ -1,6 +1,7 @@
 """Check the exact signed application payload; no developer helpers are distributed."""
 import plistlib
 import sys
+import os
 from pathlib import Path
 
 app = Path(sys.argv[1])
@@ -23,4 +24,14 @@ assert info["CFBundleIdentifier"] == "com.dante9k.tomatofocus"
 assert info["LSUIElement"] is True
 assert info["LSMinimumSystemVersion"] == "13.0"
 assert (app / "Contents/MacOS/TomatoFocus").stat().st_size > 100_000
+if "--container" in sys.argv:
+    allowed = {"Tomato Focus.app", "README.md", "README.zh-CN.md", "VALIDATION.md", "LICENSE"}
+    files = {p.name for p in app.parent.iterdir()}
+    if "Applications" in files:
+        link = app.parent / "Applications"
+        assert link.is_symlink() and os.readlink(link) == "/Applications"
+        files.remove("Applications")
+    # Finder may create a volume-local metadata directory when a DMG is mounted.
+    files.discard(".fseventsd")
+    assert files == allowed, f"Unexpected distribution content: {files ^ allowed}"
 print("PASS: macOS application allowlist, version, architecture metadata and bundled resources")

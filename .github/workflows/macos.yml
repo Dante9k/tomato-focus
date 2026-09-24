@@ -2,7 +2,7 @@ name: macOS quality
 
 on:
   push:
-    branches: [main, codex/macos-native]
+    branches: [main]
   pull_request:
   workflow_dispatch:
 

@@ -43,6 +43,8 @@ final class TomatoView: NSView {
     }
     override func draw(_ dirtyRect: NSRect) {
         guard let context = NSGraphicsContext.current?.cgContext else { return }
+        // Transparent windows retain a backing store: source-over must not accumulate each frame.
+        context.clear(bounds)
         context.saveGState(); context.scaleBy(x: bounds.width / 250, y: bounds.height / 250)
         Artwork.tomato.draw(in: NSRect(x: 0, y: 0, width: 250, height: 250), from: .zero, operation: .sourceOver, fraction: fruitOpacity, respectFlipped: true, hints: [.interpolation: NSImageInterpolation.high])
         if focusing { Artwork.readout(remaining, in: context) }

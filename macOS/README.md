@@ -40,4 +40,4 @@ Run this from the repository checkout. It runs domain tests, compiles both archi
 
 CI exercises native launch on Apple Silicon and Intel runners. These checks do not establish subjective audio quality, actual Force Touch feedback, physical input, display refresh performance, or all Spaces/full-screen/multiple-display configurations. Those require physical Mac acceptance testing. See [validation notes](VALIDATION.md).
 
-The repository's [license](../LICENSE) applies. The three processed impact samples retain Kenney's CC0 attribution, bundled with the app.
+The repository's [license](https://github.com/Dante9k/tomato-focus/blob/main/LICENSE) applies. The three processed impact samples retain Kenney's CC0 attribution, bundled with the app.

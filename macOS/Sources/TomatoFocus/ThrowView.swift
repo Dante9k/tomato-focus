@@ -6,6 +6,7 @@ final class ThrowView: NSView {
     override var isFlipped: Bool { true }
     override func draw(_ dirtyRect: NSRect) {
         guard let context = NSGraphicsContext.current?.cgContext else { return }
+        context.clear(bounds)
         for flight in flights {
             context.saveGState(); context.translateBy(x: flight.x, y: flight.y); context.rotate(by: flight.angle)
             Artwork.tomato.draw(in: NSRect(x: -flight.size / 2, y: -flight.size / 2, width: flight.size, height: flight.size), from: .zero, operation: .sourceOver, fraction: flight.resting ? max(0, 1 - flight.restingAge / 0.32) : 1, respectFlipped: true, hints: nil)

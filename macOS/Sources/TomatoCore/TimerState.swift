@@ -34,6 +34,8 @@ public struct TimerState: Codable, Equatable {
         deadline = try c.decodeIfPresent(Date.self, forKey: .deadline)
         x = try c.decodeIfPresent(Double.self, forKey: .x)
         y = try c.decodeIfPresent(Double.self, forKey: .y)
+        if let x, !x.isFinite || abs(x) > 1_000_000 { self.x = nil }
+        if let y, !y.isFinite || abs(y) > 1_000_000 { self.y = nil }
         wheelSound = try c.decodeIfPresent(Bool.self, forKey: .wheelSound) ?? wheelSound
         completionSound = try c.decodeIfPresent(Bool.self, forKey: .completionSound) ?? completionSound
         effectsSound = try c.decodeIfPresent(Bool.self, forKey: .effectsSound) ?? effectsSound

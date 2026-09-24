@@ -22,7 +22,7 @@ final class TimeWheel: NSView {
     func set(_ value: Int) { stop(); model.set(value); update(feedback: false) }
     func stop() { timer?.invalidate(); timer = nil; settle?.invalidate(); settle = nil; model.stop() }
     private func update(feedback: Bool) {
-        needsDisplay = true; setAccessibilityValue(model.value)
+        needsDisplay = true; superview?.needsDisplay = true; setAccessibilityValue(model.value)
         if feedback { detent?(); changed?() }
     }
     override func draw(_ dirtyRect: NSRect) {

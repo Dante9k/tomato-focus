@@ -53,18 +53,29 @@ lipo "$CONTENTS/MacOS/TomatoFocus" -verify_arch arm64 x86_64
 "$CONTENTS/MacOS/TomatoFocus" --verify-ui "$BUILD/verification"
 # Rebuilding must not silently ship unexpected resources from an older build.
 python3 scripts/check-macos-package.py "$APP" "$VERSION"
-STAGE="$BUILD/package"
+NAME="TomatoFocus-$VERSION-macos-universal"
+STAGE="$BUILD/$NAME"
 mkdir -p "$STAGE"
 # The DMG-only Applications link from a preceding build is not part of the ZIP.
 if [ -L "$STAGE/Applications" ]; then unlink "$STAGE/Applications"; fi
 ditto "$APP" "$STAGE/Tomato Focus.app"
 cp macOS/README.md "$STAGE/README.md"
 cp macOS/README.zh-CN.md "$STAGE/README.zh-CN.md"
+cp macOS/VALIDATION.md "$STAGE/VALIDATION.md"
 cp LICENSE "$STAGE/LICENSE"
-NAME="TomatoFocus-$VERSION-macos-universal"
+python3 scripts/check-macos-package.py "$STAGE/Tomato Focus.app" "$VERSION" --container
 ditto -c -k --sequesterRsrc --keepParent "$STAGE" "$DIST/$NAME.zip"
 ln -sfn /Applications "$STAGE/Applications"
 hdiutil create -volname "Tomato Focus" -srcfolder "$STAGE" -ov -format UDZO "$DIST/$NAME.dmg"
+hdiutil verify "$DIST/$NAME.dmg"
+MOUNT="$BUILD/mounted"
+mkdir -p "$MOUNT"
+hdiutil attach "$DIST/$NAME.dmg" -readonly -nobrowse -mountpoint "$MOUNT"
+trap 'hdiutil detach "$MOUNT" >/dev/null || true' EXIT
+python3 scripts/check-macos-package.py "$MOUNT/Tomato Focus.app" "$VERSION" --container
+codesign --verify --deep --strict "$MOUNT/Tomato Focus.app"
+hdiutil detach "$MOUNT"
+trap - EXIT
 for EXT in zip dmg; do
     (cd "$DIST" && shasum -a 256 "$NAME.$EXT" > "$NAME.$EXT.sha256")
 done

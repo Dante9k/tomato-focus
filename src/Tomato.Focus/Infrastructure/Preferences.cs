@@ -9,6 +9,8 @@ namespace Tomato
         public bool? WheelSound;
         public bool? EffectsSound;
         public bool Haptics = true;
+        public bool LaunchAtLogin = true;
+        public bool LoginStartupInitialized;
         public bool WheelSoundEnabled
         {
             get

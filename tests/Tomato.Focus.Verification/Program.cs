@@ -39,7 +39,7 @@ namespace Tomato.Tests
             };
             try
             {
-                controller = new AppController(application, Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "smoke-state.xml"));
+                controller = new AppController(application, Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "smoke-state.xml"), new StartupVerification.FakeRegistration());
                 controller.Launch(false);
                 if (mode == "--settings-smoke")
                     Verification.SettingsSmoke(controller);

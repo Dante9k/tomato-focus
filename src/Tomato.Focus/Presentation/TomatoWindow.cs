@@ -36,14 +36,15 @@ namespace Tomato
         Point screenDown;
         bool pressed, moved;
         bool focusAppearance;
+        double appearanceSize = 220;
         public bool AlarmMode { get; private set; }
 
         public TomatoWindow(AppController controller, BitmapSource art)
         {
             this.controller = controller;
-            Title = "朱果 · 番茄钟";
-            Width = 250;
-            Height = 250;
+            Title = "Tommi · 番茄钟";
+            Width = 220;
+            Height = 220;
             WindowStyle = WindowStyle.None;
             ResizeMode = ResizeMode.NoResize;
             AllowsTransparency = true;
@@ -297,10 +298,10 @@ namespace Tomato
         public void SetAlarm(bool alarm)
         {
             // Restore about the current top-right anchor; the emitter follows the animated stem.
+            AlarmMode = alarm;
             SetFocusAppearance(false);
             shake.Reset(0, 0);
             statusTimer.Stop();
-            AlarmMode = alarm;
             countdown.Visibility = Visibility.Hidden;
             countdownCaption.Visibility = Visibility.Hidden;
             picker.Visibility = alarm ? Visibility.Hidden : Visibility.Visible;
@@ -466,11 +467,12 @@ namespace Tomato
         void SetFocusAppearance(bool focused, bool animate = true)
         {
             Topmost = true;
-            if (focusAppearance == focused && animate)
+            double size = focused ? 125 : AlarmMode ? 250 : 220;
+            if (focusAppearance == focused && appearanceSize == size && animate)
                 return;
             focusAppearance = focused;
+            appearanceSize = size;
             bool motion = animate && IsVisible && SystemParameters.ClientAreaAnimation;
-            double size = focused ? 125 : 250;
             double visualWidth = Width * appearanceScale.ScaleX;
             double visualHeight = Height * appearanceScale.ScaleY;
             double opacity = fruit.Opacity;
@@ -514,8 +516,7 @@ namespace Tomato
             fruit.BeginAnimation(UIElement.OpacityProperty, null);
             appearanceScale.ScaleX = appearanceScale.ScaleY = 1;
             fruit.Opacity = focusAppearance ? .32 : 1;
-            double size = focusAppearance ? 125 : 250;
-            SetAppearanceBounds(size);
+            SetAppearanceBounds(appearanceSize);
             UpdateLayout();
             viewbox.Measure(new Size(Width, Height));
             viewbox.Arrange(new Rect(0, 0, Width, Height));
@@ -534,9 +535,11 @@ namespace Tomato
             {
                 var matrix = source.CompositionTarget.TransformToDevice;
                 var position = matrix.Transform(new Point(right - size, Top));
-                var extent = matrix.Transform(new Vector(size, size));
+                var edge = matrix.Transform(new Point(right, Top + size));
+                int x = (int)Math.Round(position.X), y = (int)Math.Round(position.Y);
                 // Move and resize atomically; separate WPF setters can enqueue an old position.
-                if (Native.SetWindowPos(source.Handle, IntPtr.Zero, (int)Math.Round(position.X), (int)Math.Round(position.Y), (int)Math.Round(extent.X), (int)Math.Round(extent.Y), 0x0004 | 0x0010))
+                // Round screen edges, not width separately, so repeated transitions cannot lose the anchor.
+                if (Native.SetWindowPos(source.Handle, IntPtr.Zero, x, y, (int)Math.Round(edge.X) - x, (int)Math.Round(edge.Y) - y, 0x0004 | 0x0010))
                     return;
             }
 

@@ -28,6 +28,8 @@ namespace Tomato.Tests
             var lines = new List<string>();
             try
             {
+                StartupVerification.Run();
+                lines.Add("PASS 登录启动默认值、显式开关、升级路径、外部移除、失败恢复及路径限制；不修改系统启动项");
                 var now = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc);
                 var clock = new Countdown();
                 bool rejected = false;
@@ -90,11 +92,15 @@ namespace Tomato.Tests
                 lines.Add("PASS 设置保存、覆盖及损坏恢复");
                 File.WriteAllText(testPath, "<Preferences><Seconds>1260</Seconds><Sound>false</Sound><Active>true</Active><DeadlineTicks>123456</DeadlineTicks></Preferences>");
                 restored = store.Read();
+                Assert(restored.LaunchAtLogin && !restored.LoginStartupInitialized, "旧设置的登录启动默认值");
+                restored.LaunchAtLogin = false;
+                restored.LoginStartupInitialized = true;
                 Assert(!restored.WheelSoundEnabled && restored.Active && restored.DeadlineTicks == 123456, "旧静音及计时迁移");
                 restored.WheelSound = true;
                 restored.EffectsSound = true;
                 Assert(store.Write(restored) && store.Read().WheelSoundEnabled && !store.Read().Sound, "独立拨轮音效设置");
                 Assert(store.Read().EffectsSound == true && !store.Read().Sound, "独立投掷音效设置");
+                Assert(!store.Read().LaunchAtLogin && store.Read().LoginStartupInitialized, "登录启动关闭偏好持久化");
                 File.WriteAllText(testPath, "<Preferences><Sound>true</Sound></Preferences>");
                 Assert(store.Read().WheelSoundEnabled, "旧有声设置迁移");
                 Assert(store.Read().EffectsSound == null && (store.Read().EffectsSound ?? store.Read().Sound), "旧有声设置默认启用投掷音效");
@@ -259,7 +265,10 @@ namespace Tomato.Tests
                 {
                     ShutdownMode = ShutdownMode.OnExplicitShutdown
                 };
-                var controller = new AppController(app, Output("preview-state.xml"));
+                new StateStore(Output("preview-state.xml")).Write(new Preferences { Left = 120, Top = 90 });
+                var controller = new AppController(app, Output("preview-state.xml"), new StartupVerification.FakeRegistration());
+                Assert(controller.Window.Left == 150 && controller.Window.Top == 90 && controller.Window.ExpandedLeft == 120, "兼容旧250像素窗口的右上角位置");
+                controller.ToggleLaunchAtLogin();
                 controller.Window.Duration = 1500;
                 double width = controller.Window.Width, height = controller.Window.Height;
                 var root = (FrameworkElement)controller.Window.Content;
@@ -270,7 +279,9 @@ namespace Tomato.Tests
                 Assert(FindNamed(root, "Units") == null, "不再显示时分秒标签");
                 SaveAudioPreview();
                 EffectVerification.RenderPreview(Output("throw-impacts.wav"));
-                Assert(width == 250 && height == 250, "250 DIP界面");
+                Assert(width == 220 && height == 220, "220 DIP待机界面");
+                var wheelOrigin = FindWheel(root).TranslatePoint(new Point(), root);
+                Assert(Math.Abs(wheelOrigin.X - 53 * .88) < 1, "拨轮布局与点击坐标同步缩放");
                 foreach (double scale in new[]
                 {
                     1.25,
@@ -316,8 +327,8 @@ namespace Tomato.Tests
                 {
                     dc.DrawRectangle(Art.Brush("#EAE9DF"), null, new Rect(0, 0, 1440, 960));
                     dc.DrawRectangle(Art.Brush("#F5F4ED"), null, new Rect(30, 30, 1380, 900));
-                    Art.Text(dc, "朱果", 34, Art.Brush("#243C30"), 87, 79, "Microsoft YaHei UI", true);
-                    Art.Text(dc, "T O M A T O   /   F O C U S", 11, Art.Brush("#648069"), 88, 135, "Segoe UI", false);
+                    Art.Text(dc, "Tommi", 34, Art.Brush("#243C30"), 87, 79, "Microsoft YaHei UI", true);
+                    Art.Text(dc, "T O M M I   /   F O C U S", 11, Art.Brush("#648069"), 88, 135, "Segoe UI", false);
                     Art.Text(dc, "让时间，", 64, Art.Brush("#233D2E"), 87, 281, "Microsoft YaHei UI", true);
                     Art.Text(dc, "慢慢成熟。", 64, Art.Brush("#233D2E"), 87, 365, "Microsoft YaHei UI", true);
                     Art.Text(dc, "一颗番茄，一段完整的专注。", 17, Art.Brush("#657665"), 93, 480, "Microsoft YaHei UI", false);
@@ -415,11 +426,13 @@ namespace Tomato.Tests
 
                 Art.Save(glyphSheet, 580, 130, Output("recessed-glyphs.png"));
                 controller.Window.ShowEditor();
-                Assert(controller.Window.Width == 250 && controller.Window.Height == 250 && FindNamed(root, "FruitArtwork").Opacity == 1, "取消恢复尺寸与原色");
+                Assert(controller.Window.Width == 220 && controller.Window.Height == 220 && FindNamed(root, "FruitArtwork").Opacity == 1, "取消恢复紧凑尺寸与原色");
                 Assert(FindWheel(root).IsEnabled && FindWheel(root).Visibility == Visibility.Visible, "取消恢复编辑");
                 Assert(FindNamed(root, "TimeEditorFrame").Visibility == Visibility.Visible && FindNamed(root, "TomatoMenu").Visibility == Visibility.Visible, "取消后恢复编辑底板和菜单");
                 Assert(FindNamed(root, "CountdownReadout").Visibility == Visibility.Hidden, "取消隐藏倒计时");
                 controller.Window.SetAlarm(true);
+                Assert(controller.Window.Width == 250 && controller.Window.Height == 250, "提醒保持250 DIP");
+                width = height = 250;
                 root.Measure(new Size(width, height));
                 root.Arrange(new Rect(0, 0, width, height));
                 root.UpdateLayout();
@@ -438,6 +451,10 @@ namespace Tomato.Tests
                 Assert(controller.EffectsSound != wasEnabled && effects.IsChecked == controller.EffectsSound, "现代面板声音开关与持久化偏好同步");
                 effects.RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent));
                 Assert(controller.EffectsSound == wasEnabled, "面板开关可恢复原值");
+                var startup = (System.Windows.Controls.Primitives.ToggleButton)FindNamed(settingsRoot, "ToggleStartup");
+                Assert(startup.IsEnabled && startup.IsChecked == true, "设置面板显示登录启动状态");
+                startup.RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent));
+                Assert(!controller.LaunchAtLogin && !new StateStore(Output("preview-state.xml")).Read().LaunchAtLogin, "设置面板关闭登录启动并保存");
                 Assert(FindNamed(settingsRoot, "Preset1500") != null && FindNamed(settingsRoot, "QuitTomato") != null, "面板保留预设和退出入口");
                 settings.Close();
                 File.WriteAllText(Output("render-results.txt"), "PASS WPF editor/countdown/alarm renders; read-only countdown; hour/minute rollover; preset preserved; editor restored");
@@ -565,12 +582,12 @@ namespace Tomato.Tests
                     }
                     else
                     {
-                        Assert(Math.Abs(controller.Window.Width - 250) < 1 && Math.Abs(controller.Window.Height - 250) < 1 && controller.Window.Topmost, "取消后恢复编辑尺寸且置顶");
+                        Assert(Math.Abs(controller.Window.Width - 220) < 1 && Math.Abs(controller.Window.Height - 220) < 1 && controller.Window.Topmost, "取消后恢复220 DIP且置顶");
                         Assert(FindNamed(root, "FruitArtwork").Opacity == 1 && controller.Window.Duration == 60, "恢复原色并保留预设");
-                        Assert(Math.Abs(controller.Window.Left - (anchoredRight - 250)) < 1.5 && maxAnchorDrift < 1.5, "反向恢复仍固定右上角并回到原位");
+                        Assert(Math.Abs(controller.Window.Left - (anchoredRight - 220)) < 1.5 && maxAnchorDrift < 1.5, "反向恢复仍固定右上角并回到原位");
                         controller.Start();
                         controller.Window.SetAlarm(true);
-                        Assert(controller.Window.AlarmMode && Math.Abs(controller.Window.Left + controller.Window.Width - anchoredRight) < 1.5, "提醒打断缩小动画且保留原处锚点");
+                        Assert(controller.Window.AlarmMode && Math.Abs(controller.Window.Left + controller.Window.Width - anchoredRight) < 1.5, "提醒打断缩小动画且保留原处锚点；left=" + controller.Window.Left + ", width=" + controller.Window.Width + ", anchor=" + anchoredRight);
                         controller.Cancel();
                         timer.Stop();
                         CompositionTarget.Rendering -= sample;
@@ -764,7 +781,7 @@ namespace Tomato.Tests
                     }
                     else if (stage == 8 && elapsed > 17.7)
                     {
-                        Assert(Math.Abs(controller.Window.Width - 250) < 1 && Math.Abs(controller.Window.Height - 250) < 1 && controller.Window.Topmost, "快速开始取消后动画恢复尺寸和置顶");
+                        Assert(Math.Abs(controller.Window.Width - 220) < 1 && Math.Abs(controller.Window.Height - 220) < 1 && controller.Window.Topmost, "快速开始取消后动画恢复紧凑尺寸和置顶");
                         timer.Stop();
                         CompositionTarget.Rendering -= sampleTransition;
                         File.WriteAllLines(Output("smoke-results.txt"), log, System.Text.Encoding.UTF8);

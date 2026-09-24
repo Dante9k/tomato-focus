@@ -5,8 +5,8 @@ Set-StrictMode -Version Latest
 $root = Split-Path $PSScriptRoot -Parent
 if (-not $UseExistingApplicationPackage) { & (Join-Path $PSScriptRoot 'package.ps1') }
 $version = (Get-Content -LiteralPath (Join-Path $root 'VERSION') -Raw).Trim()
-$zipName = "TomatoFocus-$version-win-x64.zip"
-$setupName = "TomatoFocus-$version-Setup.exe"
+$zipName = "Tommi-$version-win-x64.zip"
+$setupName = "Tommi-$version-Setup.exe"
 $zip = Join-Path $root "dist/$zipName"
 $setup = Join-Path $root "dist/$setupName"
 if ($UseExistingApplicationPackage) {
@@ -29,8 +29,8 @@ $release = [ordered]@{ version = $version; installer = "downloads/$setupName"; p
 ('window.TOMATO_RELEASE = ' + ($release | ConvertTo-Json -Compress) + ';') | Set-Content -LiteralPath (Join-Path $site 'release.js') -Encoding UTF8
 $htmlPath = Join-Path $site 'index.html'
 $html = [IO.File]::ReadAllText($htmlPath)
-$html = $html -replace 'TomatoFocus-\d+\.\d+\.\d+-Setup\.exe', $setupName
-$html = $html -replace 'TomatoFocus-\d+\.\d+\.\d+-win-x64\.zip', $zipName
+$html = $html -replace 'Tommi-\d+\.\d+\.\d+-Setup\.exe', $setupName
+$html = $html -replace 'Tommi-\d+\.\d+\.\d+-win-x64\.zip', $zipName
 $html = $html -replace 'v\d+\.\d+\.\d+ · Windows', "v$version · Windows"
 [IO.File]::WriteAllText($htmlPath, $html, (New-Object Text.UTF8Encoding($false)))
 # Package only public files: never include server configuration, source, or credentials.
@@ -38,7 +38,7 @@ $publicFiles = @('index.html', 'style.css', 'app.js', 'release.js', 'assets/toma
 $publicFiles += @('media/tomato.webp', 'media/timer-edit.webp', 'media/timer-focus.webp', 'media/film-zh.webp', 'media/film-en.webp', 'media/film-zh.mp4', 'media/film-en.mp4')
 $manifest = foreach ($name in $publicFiles) { (Get-FileHash -LiteralPath (Join-Path $site $name) -Algorithm SHA256).Hash.ToLowerInvariant() + '  ' + $name }
 $manifest | Set-Content -LiteralPath (Join-Path $site 'MANIFEST.sha256') -Encoding ASCII
-$siteZip = Join-Path $root "dist/TomatoFocus-website-$version.zip"
+$siteZip = Join-Path $root "dist/Tommi-website-$version.zip"
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 $stream = [IO.File]::Open($siteZip, [IO.FileMode]::Create)
 $archive = [IO.Compression.ZipArchive]::new($stream, [IO.Compression.ZipArchiveMode]::Create)

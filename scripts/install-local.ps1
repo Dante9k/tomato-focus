@@ -14,14 +14,15 @@ if (!(($target + '\').StartsWith($installRoot + '\', [StringComparison]::Ordinal
 $executable = Join-Path $target 'Tomato.exe'
 $running = @(Get-Process -Name Tomato -ErrorAction SilentlyContinue)
 if ($running.Count -gt 0 -and !$PrepareOnly) {
-    throw '请先右键任务栏通知区域的番茄图标，选择“退出朱果”，再重新运行安装。退出会保存计时；安装程序不会强制结束进程。'
+    throw '请先右键任务栏通知区域的番茄图标，选择“退出Tommi”，再重新运行安装。退出会保存计时；安装程序不会强制结束进程。'
 }
 if ($PrepareOnly -and @($running | Where-Object { $_.Path -eq $executable }).Count -gt 0) {
     throw 'The target version is running. Exit it from the tray before updating its files.'
 }
 
-$archive = Join-Path $projectRoot "dist\TomatoFocus-$version-win-x64.zip"
-$source = Join-Path $projectRoot "dist\TomatoFocus-$version-win-x64"
+$prefix = if ([version]$version -ge [version]'1.1.17') { 'Tommi' } else { 'TomatoFocus' }
+$archive = Join-Path $projectRoot "dist\$prefix-$version-win-x64.zip"
+$source = Join-Path $projectRoot "dist\$prefix-$version-win-x64"
 $files = @('Tomato.exe', 'Tomato.exe.config', 'README.md', 'LICENSE', 'CHANGELOG.md', 'VALIDATION.md', 'preview.png')
 if ([version]$version -ge [version]'1.1.15') { $files += 'README.zh-CN.md' }
 $previous = @(Get-ChildItem -LiteralPath (Join-Path $projectRoot 'dist'), $installRoot -Filter Tomato.exe -Recurse -ErrorAction SilentlyContinue |
@@ -48,7 +49,7 @@ if ([Diagnostics.FileVersionInfo]::GetVersionInfo($executable).FileVersion -ne "
 $shell = New-Object -ComObject WScript.Shell
 $desktop = [Environment]::GetFolderPath('DesktopDirectory')
 $programs = [Environment]::GetFolderPath('Programs')
-$links = @((Join-Path $desktop '朱果番茄钟.lnk'), (Join-Path $programs '朱果番茄钟.lnk'))
+$links = @((Join-Path $desktop 'Tommi.lnk'), (Join-Path $programs 'Tommi.lnk'))
 $oldLinks = @()
 foreach ($folder in @($desktop, $programs)) {
     foreach ($file in @(Get-ChildItem -LiteralPath $folder -Filter *.lnk -ErrorAction SilentlyContinue)) {
@@ -66,16 +67,16 @@ foreach ($path in @($links | Select-Object -Unique)) {
     $link.WorkingDirectory = $target
     $link.Arguments = ''
     $link.IconLocation = $executable + ',0'
-    $link.Description = "朱果番茄钟 $version"
+    $link.Description = "Tommi $version"
     $link.Save()
     if ($shell.CreateShortcut($path).TargetPath -ne $executable) { throw "Shortcut did not verify: $path" }
 }
 
 $rollback = @(
-    "朱果 $version 本地升级记录",
+    "Tommi $version 本地升级记录",
     "安装路径：$target",
     "设置备份：$backup",
-    '回退：先从托盘退出朱果，再打开下面保留的旧版本 Tomato.exe。新设置兼容旧版，一般不需要恢复备份。',
+    '回退：先从托盘退出Tommi，再打开下面保留的旧版本 Tomato.exe。新设置兼容旧版，一般不需要恢复备份。',
     '如必须恢复备份，先备份当前 state.xml，再复制本目录的 state.xml 到 LocalAppData/TomatoFocus/state.xml。恢复旧备份会恢复当时的截止时间，请确认后操作。',
     '旧版本路径：'
 ) + $previous

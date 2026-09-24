@@ -2,13 +2,13 @@
 
 English | [简体中文](README.zh-CN.md)
 
-[![Windows quality](https://github.com/Dante9k/tomato-focus/actions/workflows/ci.yml/badge.svg)](https://github.com/Dante9k/tomato-focus/actions/workflows/ci.yml)
+[![Windows quality](https://github.com/Dante9k/tommi/actions/workflows/ci.yml/badge.svg)](https://github.com/Dante9k/tommi/actions/workflows/ci.yml)
 
 **One tomato. One uninterrupted moment of focus.**
 
 A transparent desktop Pomodoro timer for Windows and macOS, with a rounded clay-style tomato, soft lighting, and inertial time wheels. When time is up, little tomatoes fly from the widget's current position across your desktop to remind you to take a break.
 
-**Mac edition:** [Install and use the native macOS app](https://github.com/Dante9k/tomato-focus/tree/main/macOS) · macOS 13+, Apple Silicon and Intel. The first Mac package is ad-hoc signed and has not been notarized. The Windows instructions follow below.
+**Mac edition:** [Install and use the native macOS app](https://github.com/Dante9k/tommi/tree/main/macOS) · macOS 13+, Apple Silicon and Intel. The first Mac package is ad-hoc signed and has not been notarized. The Windows instructions follow below.
 
 ![Tomato Focus desktop widget](docs/images/preview.png)
 
@@ -27,7 +27,7 @@ On compatible Windows versions and hardware, settings also show an independent h
 
 ## Requirements and installation
 
-Download the `tomato-focus-win-x64` artifact from a successful [Windows build](https://github.com/Dante9k/tomato-focus/actions/workflows/ci.yml).
+Download the `tomato-focus-win-x64` artifact from a successful [Windows build](https://github.com/Dante9k/tommi/actions/workflows/ci.yml).
 
 - Windows 10 or 11, x64, with .NET Framework 4.8.
 - The graphical installer accepts an editable full path and has a **Browse** button for selecting a dedicated empty folder. The default is `%LOCALAPPDATA%/Programs/TomatoFocus/1.1.15`; other writable folders on local drives are supported, including paths containing spaces or Chinese characters. The displayed path is the exact destination, with no extra subfolder appended.

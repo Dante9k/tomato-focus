@@ -2,13 +2,13 @@
 
 [English](README.md) | 简体中文
 
-[![Windows quality](https://github.com/Dante9k/tomato-focus/actions/workflows/ci.yml/badge.svg)](https://github.com/Dante9k/tomato-focus/actions/workflows/ci.yml)
+[![Windows quality](https://github.com/Dante9k/tommi/actions/workflows/ci.yml/badge.svg)](https://github.com/Dante9k/tommi/actions/workflows/ci.yml)
 
 **一颗番茄，一段完整的专注。**
 
 适用于 Windows 和 macOS 的透明桌面番茄钟。圆润软陶风格、细腻柔光与紧凑尺寸，中央时间滚轮支持惯性滑动；时间到后，小番茄从当前番茄所在位置持续抛出，用轻巧的动画提醒你休息。
 
-**Mac 版：**[原生 macOS 版安装与使用](https://github.com/Dante9k/tomato-focus/blob/main/macOS/README.zh-CN.md)，支持 macOS 13 及以上、Apple Silicon 和 Intel。首版为临时签名，尚未完成苹果公证。以下为 Windows 使用说明。
+**Mac 版：**[原生 macOS 版安装与使用](https://github.com/Dante9k/tommi/blob/main/macOS/README.zh-CN.md)，支持 macOS 13 及以上、Apple Silicon 和 Intel。首版为临时签名，尚未完成苹果公证。以下为 Windows 使用说明。
 
 ![朱果番茄钟](docs/images/preview.png)
 
@@ -27,7 +27,7 @@
 
 ## 运行条件
 
-最新验证包可从 [Windows 自动构建](https://github.com/Dante9k/tomato-focus/actions/workflows/ci.yml) 的成功记录中下载 `tomato-focus-win-x64` 产物。
+最新验证包可从 [Windows 自动构建](https://github.com/Dante9k/tommi/actions/workflows/ci.yml) 的成功记录中下载 `tomato-focus-win-x64` 产物。
 
 - Windows 10 / 11，x64，.NET Framework 4.8。
 - 图形安装器支持编辑完整安装路径，或点击「浏览」选择专用空文件夹。默认位置为 `%LOCALAPPDATA%/Programs/TomatoFocus/1.1.15`，也可安装到其他有写入权限的本地磁盘目录，支持中文和空格。路径框显示的就是实际安装位置，不会额外追加子目录。

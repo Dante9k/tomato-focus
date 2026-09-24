@@ -6,7 +6,7 @@ The native Mac edition of **朱果 · Tomato Focus**, built with Swift, AppKit a
 
 ## Install
 
-Download the Mac disk image or ZIP from [GitHub Releases](https://github.com/Dante9k/tomato-focus/releases), or the `tomato-focus-macos-universal` artifact from a successful [macOS build](https://github.com/Dante9k/tomato-focus/actions/workflows/macos.yml).
+Download the Mac disk image or ZIP from [GitHub Releases](https://github.com/Dante9k/tommi/releases), or the `tomato-focus-macos-universal` artifact from a successful [macOS build](https://github.com/Dante9k/tommi/actions/workflows/macos.yml).
 
 Open the DMG and drag **Tomato Focus.app** into Applications, or copy the app to another writable folder. Open the app; a small tomato appears on your desktop and in the menu bar, without a Dock icon. **Launch at login is enabled by default on the first launch**, including the first launch after upgrading from 1.1.15. You can turn it off in Preferences. macOS may require approval under System Settings → General → Login Items; the app shows the actual registration/approval state and provides a shortcut there. It does not repeatedly re-enable an item you remove in System Settings. Quit an existing copy from its menu-bar menu before replacing it. Settings and active deadlines survive replacement.
 
@@ -41,4 +41,4 @@ Run this from the repository checkout. It runs domain tests, compiles both archi
 
 The Mac version is maintained in `macOS/VERSION`; Windows continues to use the root `VERSION`. CI exercises native launch on Apple Silicon and Intel runners. Login preference tests cover defaults, disabling, persistence, pending approval, OS errors and avoiding repeated registration. Only disposable GitHub runners exercise the real registration/removal API; ordinary local builds use a simulated login service and do not change the developer's login items. An actual logout/login session, subjective audio quality, Force Touch feedback, physical input, display refresh performance and all Spaces/full-screen/multiple-display configurations still require physical Mac acceptance testing. See [validation notes](VALIDATION.md).
 
-The repository's [license](https://github.com/Dante9k/tomato-focus/blob/main/LICENSE) applies. The three processed impact samples retain Kenney's CC0 attribution, bundled with the app.
+The repository's [license](https://github.com/Dante9k/tommi/blob/main/LICENSE) applies. The three processed impact samples retain Kenney's CC0 attribution, bundled with the app.

@@ -15,7 +15,7 @@ using System.Windows.Forms;
 
 internal static class Setup
 {
-    private static readonly string[] Files = { "Tomato.exe", "Tomato.exe.config", "README.md", "LICENSE", "CHANGELOG.md", "VALIDATION.md", "preview.png" };
+    private static readonly string[] Files = { "Tomato.exe", "Tomato.exe.config", "README.md", "README.zh-CN.md", "LICENSE", "CHANGELOG.md", "VALIDATION.md", "preview.png" };
 
     private static string ResourceText(string name)
     {
@@ -82,6 +82,13 @@ internal static class Setup
 
     private static Form CreateForm(string version, byte[] bytes)
     {
+        return CreateInstallForm(version,
+            delegate (string target, bool desktop) { Install(bytes, target, desktop); },
+            delegate { return Process.GetProcessesByName("Tomato").Length != 0; });
+    }
+
+    private static Form CreateInstallForm(string version, Action<string, bool> installAction, Func<bool> isRunning)
+    {
         var ink = Color.FromArgb(36, 44, 56);
         var muted = Color.FromArgb(95, 105, 119);
         var red = Color.FromArgb(207, 59, 40);
@@ -115,13 +122,33 @@ internal static class Setup
         var separator = new Panel { Location = new Point(296, 227), Size = new Size(412, 1), BackColor = Color.FromArgb(232, 234, 238) };
         var pathLabel = TextLabel("安装位置", 295, 249, 410, 24, 10, ink, true);
         string target = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Programs", "TomatoFocus", version);
-        var path = new TextBox { Text = target, ReadOnly = true, Multiline = true, WordWrap = true, Font = new Font("Microsoft YaHei UI", 9), Location = new Point(297, 282), Size = new Size(411, 42), BackColor = Color.FromArgb(248, 249, 251), BorderStyle = BorderStyle.FixedSingle, AccessibleName = "安装位置", TabIndex = 0 };
-        var desktop = new CheckBox { Text = "创建桌面快捷方式", Checked = true, Location = new Point(296, 341), AutoSize = true, TabIndex = 1 };
-        var status = TextLabel("无需管理员权限，不添加开机自启。", 295, 377, 415, 40, 9, muted);
-        var install = new Button { Text = "开始安装", Location = new Point(558, 431), Size = new Size(150, 43), BackColor = red, ForeColor = Color.White, FlatStyle = FlatStyle.Flat, Cursor = Cursors.Hand, TabIndex = 2 };
+        var path = new TextBox { Name = "InstallationPath", Text = target, AutoSize = false, Font = new Font("Microsoft YaHei UI", 9), Location = new Point(297, 282), Size = new Size(306, 32), BackColor = Color.FromArgb(248, 249, 251), BorderStyle = BorderStyle.FixedSingle, AccessibleName = "完整安装路径", TabIndex = 0 };
+        var browse = new Button { Name = "BrowseFolder", Text = "浏览…", Location = new Point(617, 282), Size = new Size(91, 32), BackColor = Color.White, FlatStyle = FlatStyle.Flat, TabIndex = 1, AccessibleName = "选择安装文件夹" };
+        browse.FlatAppearance.BorderColor = Color.FromArgb(220, 225, 232);
+        browse.Click += delegate
+        {
+            using (var dialog = new FolderBrowserDialog { Description = "选择用于朱果的空文件夹，也可以新建文件夹。", ShowNewFolderButton = true })
+            {
+                try
+                {
+                    string initial = NormalizeTarget(path.Text);
+                    while (!String.IsNullOrEmpty(initial) && !Directory.Exists(initial)) initial = Path.GetDirectoryName(initial);
+                    if (!String.IsNullOrEmpty(initial)) dialog.SelectedPath = initial;
+                }
+                catch (Exception ex)
+                {
+                    if (!(ex is ArgumentException || ex is IOException || ex is UnauthorizedAccessException)) throw;
+                }
+                if (dialog.ShowDialog(form) == DialogResult.OK) { path.Text = dialog.SelectedPath; path.Focus(); }
+            }
+        };
+        var pathHint = TextLabel("可输入完整路径，或选择一个专用空文件夹。", 295, 320, 415, 23, 9, muted);
+        var desktop = new CheckBox { Text = "创建桌面快捷方式", Checked = true, Location = new Point(296, 352), AutoSize = true, TabIndex = 2 };
+        var status = TextLabel("请选择有写入权限的位置。不添加开机自启。", 295, 387, 415, 35, 9, muted);
+        var install = new Button { Name = "InstallButton", Text = "开始安装", Location = new Point(558, 431), Size = new Size(150, 43), BackColor = red, ForeColor = Color.White, FlatStyle = FlatStyle.Flat, Cursor = Cursors.Hand, TabIndex = 3 };
         install.FlatAppearance.BorderSize = 0;
         install.FlatAppearance.MouseOverBackColor = Color.FromArgb(181, 47, 31);
-        var cancel = new Button { Text = "取消", Location = new Point(445, 431), Size = new Size(95, 43), BackColor = Color.White, FlatStyle = FlatStyle.Flat, TabIndex = 3 };
+        var cancel = new Button { Text = "取消", Location = new Point(445, 431), Size = new Size(95, 43), BackColor = Color.White, FlatStyle = FlatStyle.Flat, TabIndex = 4 };
         cancel.FlatAppearance.BorderColor = Color.FromArgb(220, 225, 232);
         cancel.Click += delegate { form.Close(); };
         bool installed = false;
@@ -129,10 +156,14 @@ internal static class Setup
         {
             if (installed) { form.Close(); return; }
             install.Enabled = false;
+            path.ReadOnly = true;
+            browse.Enabled = false;
             try
             {
-                if (Process.GetProcessesByName("Tomato").Length != 0) throw new IOException("请先从托盘退出朱果，再点击安装。安装程序不会强制关闭应用。");
-                Install(bytes, target, desktop.Checked);
+                if (isRunning()) throw new IOException("请先从托盘退出朱果，再点击安装。安装程序不会强制关闭应用。");
+                target = NormalizeTarget(path.Text);
+                installAction(target, desktop.Checked);
+                path.Text = target;
                 installed = true;
                 title.Text = "朱果已准备就绪";
                 description.Text = "从开始菜单打开「朱果番茄钟」，\n开始你的下一段专注。";
@@ -141,10 +172,11 @@ internal static class Setup
                 cancel.Visible = false;
                 status.Text = "卸载时退出朱果，删除安装文件夹及快捷方式即可。";
             }
+            catch (UnauthorizedAccessException) { MessageBox.Show(form, "无法写入所选位置。请使用“浏览”选择有写入权限的文件夹。", "安装未完成", MessageBoxButtons.OK, MessageBoxIcon.Warning); }
             catch (Exception ex) { MessageBox.Show(form, ex.Message, "安装未完成", MessageBoxButtons.OK, MessageBoxIcon.Warning); }
-            finally { install.Enabled = true; }
+            finally { install.Enabled = true; path.ReadOnly = installed; browse.Enabled = !installed; }
         };
-        form.Controls.AddRange(new Control[] { title, description, versionLabel, separator, pathLabel, path, desktop, status, install, cancel });
+        form.Controls.AddRange(new Control[] { title, description, versionLabel, separator, pathLabel, path, browse, pathHint, desktop, status, install, cancel });
         form.AcceptButton = install;
         form.CancelButton = cancel;
         form.Disposed += delegate { logo.Image.Dispose(); form.Icon.Dispose(); };
@@ -160,32 +192,71 @@ internal static class Setup
 
     private static void Install(byte[] bytes, string target, bool desktop)
     {
-        string root = Path.GetFullPath(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Programs", "TomatoFocus"));
-        target = Path.GetFullPath(target);
-        if (!target.StartsWith(root + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase)) throw new IOException("安装目录无效。");
+        target = NormalizeTarget(target);
+        InstallFiles(bytes, target);
+        Shortcut(Environment.GetFolderPath(Environment.SpecialFolder.Programs), target);
+        if (desktop) Shortcut(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), target);
+    }
+
+    private static string NormalizeTarget(string input)
+    {
+        string target = (input ?? "").Trim();
+        if (!System.Text.RegularExpressions.Regex.IsMatch(target, @"^[A-Za-z]:[\\/]"))
+            throw new IOException("请输入本地磁盘上的完整路径，例如 D:\\Apps\\TomatoFocus。");
+        foreach (var part in target.Substring(3).Split(new[] { '\\', '/' }, StringSplitOptions.RemoveEmptyEntries))
+        {
+            if (part.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0 || part.EndsWith(".") || part.EndsWith(" ") ||
+                System.Text.RegularExpressions.Regex.IsMatch(part, @"^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])(?:\.|$)", System.Text.RegularExpressions.RegexOptions.IgnoreCase))
+                throw new IOException("安装路径包含无效的文件夹名称，请重新选择。");
+        }
+        target = Path.GetFullPath(target).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+        if (target.Length <= 3) throw new IOException("请在磁盘内选择一个专用文件夹，不要直接安装到磁盘根目录。");
+        if (target.Length + 1 + Files.Max(name => name.Length) >= 260) throw new IOException("安装路径太长，请选择层级更少的文件夹。");
+        if (File.Exists(target)) throw new IOException("所选路径是一个文件，请选择文件夹。");
+        EnsureOrdinaryDirectories(target);
+        return target;
+    }
+
+    private static void EnsureOrdinaryDirectories(string target)
+    {
         for (var directory = new DirectoryInfo(target); directory != null; directory = directory.Parent)
-            if (directory.Exists && (directory.Attributes & FileAttributes.ReparsePoint) != 0) throw new IOException("安装目录包含目录链接，请使用普通用户目录。");
+        {
+            if (File.Exists(directory.FullName)) throw new IOException("安装路径中有同名文件，请重新选择文件夹。");
+            if (directory.Exists && (directory.Attributes & FileAttributes.ReparsePoint) != 0) throw new IOException("安装目录包含目录链接，请选择普通文件夹。");
+        }
+    }
+
+    private static void InstallFiles(byte[] bytes, string target)
+    {
+        target = NormalizeTarget(target);
         // Existing versions are immutable: never overwrite a user's different executable or files.
-        if (Directory.Exists(target))
+        if (Directory.Exists(target) && Directory.EnumerateFileSystemEntries(target).Any())
         {
             if (!Directory.GetFiles(target).Select(Path.GetFileName).OrderBy(n => n).SequenceEqual(Files.OrderBy(n => n)) || Directory.GetDirectories(target).Length != 0)
-                throw new IOException("相同版本的目录已经存在且内容不同，已保留原文件。请先检查该目录。");
+                throw new IOException("所选文件夹不是空的。原文件已保留，请新建文件夹，或选择与当前安装包完全相同的版本目录。");
+            if (Directory.GetFiles(target).Any(file => (File.GetAttributes(file) & FileAttributes.ReparsePoint) != 0))
+                throw new IOException("所选文件夹包含文件链接，请使用专用空文件夹。");
             using (var zip = new ZipArchive(new MemoryStream(bytes), ZipArchiveMode.Read))
             foreach (var entry in zip.Entries)
                 using (var source = entry.Open())
                 using (var existing = File.OpenRead(Path.Combine(target, entry.FullName)))
                 using (var sha = SHA256.Create())
-                    if (!sha.ComputeHash(source).SequenceEqual(sha.ComputeHash(existing))) throw new IOException("现有版本与安装包不同，未覆盖文件。");
+                    if (!sha.ComputeHash(source).SequenceEqual(sha.ComputeHash(existing))) throw new IOException("现有文件与安装包不同，原文件已保留。请为新版选择其他文件夹。");
         }
         else
         {
+            string root = Path.GetDirectoryName(target);
             Directory.CreateDirectory(root);
-            string staging = Path.Combine(root, ".install-" + Guid.NewGuid().ToString("N"));
+            EnsureOrdinaryDirectories(root);
+            // A sibling staging folder keeps the final move on the selected volume.
+            string staging = Path.Combine(root, ".tomato-install-" + Guid.NewGuid().ToString("N"));
             Directory.CreateDirectory(staging);
             try
             {
                 using (var zip = new ZipArchive(new MemoryStream(bytes), ZipArchiveMode.Read))
                 foreach (var entry in zip.Entries) entry.ExtractToFile(Path.Combine(staging, entry.FullName));
+                EnsureOrdinaryDirectories(target);
+                if (Directory.Exists(target)) Directory.Delete(target, false); // Fails if another process added a file.
                 Directory.Move(staging, target);
             }
             finally
@@ -197,8 +268,6 @@ internal static class Setup
                 }
             }
         }
-        Shortcut(Environment.GetFolderPath(Environment.SpecialFolder.Programs), target);
-        if (desktop) Shortcut(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), target);
     }
 
     private static void Shortcut(string folder, string target)

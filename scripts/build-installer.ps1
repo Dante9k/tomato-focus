@@ -20,6 +20,9 @@ $arguments = @('/nologo', '/target:winexe', '/platform:x64', '/optimize+', '/war
 if ($LASTEXITCODE -ne 0) { throw 'Installer compilation failed.' }
 $verify = Start-Process -FilePath $setup -ArgumentList '--verify-payload' -WindowStyle Hidden -Wait -PassThru
 if ($verify.ExitCode -ne 0) { throw 'Installer embedded package verification failed.' }
+$functional = Start-Process -FilePath (Join-Path $root 'build/Tomato.Verify.exe') -ArgumentList @('--installer-test', ('"' + $setup + '"')) -WindowStyle Hidden -Wait -PassThru
+if ($functional.ExitCode -ne 0) { throw 'Installer functional verification failed. See build/installer-results.txt.' }
+Get-Content -LiteralPath (Join-Path $root 'build/installer-results.txt') -Encoding UTF8
 $previewPath = Join-Path $root 'build/installer-preview.png'
 $preview = Start-Process -FilePath $setup -ArgumentList @('--render-preview', ('"' + $previewPath + '"')) -WindowStyle Hidden -Wait -PassThru
 if ($preview.ExitCode -ne 0 -or !(Test-Path -LiteralPath $previewPath)) { throw 'Installer preview rendering failed.' }

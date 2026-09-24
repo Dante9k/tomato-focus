@@ -55,5 +55,6 @@ jobs:
             build/tomato-widget.png
             build/tomato-alarm.png
             build/installer-preview.png
+            build/installer-results.txt
           if-no-files-found: warn
           retention-days: 7

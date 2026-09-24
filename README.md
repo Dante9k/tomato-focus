@@ -1,120 +1,130 @@
-# 朱果 · Tomato Focus
+# Zhuguo · Tomato Focus
+
+English | [简体中文](README.zh-CN.md)
 
 [![Windows quality](https://github.com/Dante9k/tomato-focus/actions/workflows/ci.yml/badge.svg)](https://github.com/Dante9k/tomato-focus/actions/workflows/ci.yml)
 
-**一颗番茄，一段完整的专注。**
+**One tomato. One uninterrupted moment of focus.**
 
-适用于 Windows 的透明桌面番茄钟。圆润软陶风格、细腻柔光与紧凑尺寸，中央时间滚轮支持惯性滑动；时间到后，小番茄从当前番茄所在位置持续抛出，用轻巧的动画提醒你休息。
+A transparent desktop Pomodoro timer for Windows, with a rounded clay-style tomato, soft lighting, and inertial time wheels. When time is up, little tomatoes fly from the widget's current position across your desktop to remind you to take a break.
 
-![朱果番茄钟](docs/images/preview.png)
+![Tomato Focus desktop widget](docs/images/preview.png)
 
-## 使用
+## How to use
 
-1. 调整番茄中央的 **小时／分钟／秒**。支持滚轮、上下拖动、点击相邻数字；Tab 切换列，方向键微调，也可直接输入数字。
-2. **双击绿蒂开始**，番茄以460ms向右上角平滑缩至125 × 125逻辑像素、淡至32%不透明度并保持置顶，编辑框完全隐去，以笔画稍宽、字形偏扁的圆角等宽镂空数字显示倒计时，内部透出淡白光；不足一小时显示分秒，达到一小时显示时分秒。缩小后倒计时仍保持清晰。取消专注恢复原尺寸和原色，到时恢复大番茄提醒。果身底部双击或 Enter 也可开始；专注中再次双击不会重新计时。
-3. 时间到后，番茄留在当前所在的位置，平滑恢复提醒大小，并从果蒂向整个桌面连续投掷小番茄。投出播放轻柔掠空声，真实触地时播放柔软撞击声，反弹后再次落地更轻；声音位置与画面左右位置对应。
-4. **拖动或双击大番茄停止提醒**，也可以按 Esc。
+1. Set **hours, minutes, and seconds** in the center of the tomato. Scroll, drag vertically, or click adjacent numbers. Use Tab to switch columns, arrow keys to adjust, or type digits directly.
+2. **Double-click the green stem to start.** Over 460 ms, the widget shrinks toward its own upper-right corner to 125 × 125 logical pixels, fades the fruit to 32% opacity, and stays on top. The editing controls disappear, leaving rounded, slightly wide and flat cutout digits with a soft white inner glow. Times under an hour show minutes and seconds; longer times include hours. Canceling restores the original size and color. Double-clicking the lower fruit or pressing Enter also starts a timer; double-clicking during focus does not restart it.
+3. When time is up, the tomato stays at its current location, smoothly returns to reminder size, and throws little tomatoes from its stem across the desktop. Quiet launch sounds and soft landing sounds follow the animation; a second landing is quieter, with stereo position matching the image.
+4. **Drag or double-click the large tomato to stop the reminder**, or press Esc.
 
-任务栏通知区域的番茄图标可找回窗口、查看剩余时间、取消计时和退出。计时中拖住果身快速来回摇晃即可取消专注，中央恢复原先设定的可编辑时长；普通拖动只移动位置。右击托盘图标、番茄或点击 `···` 可打开统一的深松绿配置面板，提供 25／5／15 分钟预设、独立的到时提示音、拨轮音效、投掷与落地音效开关，以及带音效的 8 秒动画预览。停止提醒同时停止所有投掷和落地声音。
+The notification-area icon lets you bring back the widget, check the remaining time, cancel focus, or quit. While focusing, drag and quickly shake the fruit back and forth to cancel; an ordinary drag only moves it. Right-click the tray icon or tomato, or click `···`, to open the dark green settings panel. It includes 25/5/15-minute presets, separate switches for the completion chime, wheel clicks, and throw/landing sounds, plus an eight-second animated preview with sound. Stopping a reminder also stops its sounds.
 
-主窗口 **250 × 250 个逻辑像素**，选中数字 24 像素，每列拨轮宽 48 像素。编辑时使用 `00:25:00` 数字排列，不显示时／分／秒文字；悬停和辅助功能仍说明每列含义。可设置 1 秒至 23:59:59。数字沿滚筒弧面翻转，松手后惯性停靠到完整数字；跨格播放原创的短促机械卡点声。关闭系统动画时直接切换数字。提示音在到期时播放一次，正式动画持续到手动停止。
+The editing window is **250 × 250 logical pixels**, with 24-pixel selected digits and 48-pixel-wide time columns. It displays `00:25:00` without visible unit labels; tooltips and accessibility names still identify each column. Durations range from one second to 23:59:59. Digits rotate along a curved wheel and settle on whole values after an inertial scroll, with original mechanical detent sounds at each step. Disabling system animations makes the values switch directly. The completion chime plays once; the reminder animation continues until stopped.
 
-兼容 Windows 接口和硬件时，菜单会显示独立的「轻触震动」选项。普通鼠标或旧版 Windows 使用声音和回弹；本机 Windows 10 已验证降级路径，真实触觉效果尚未在兼容硬件上验收。接口要求见 [微软文档](https://learn.microsoft.com/en-us/windows/apps/develop/input/haptics)。
+On compatible Windows versions and hardware, settings also show an independent haptic-feedback option. Ordinary mice and older Windows versions use sound and visual feedback. The fallback has been verified on Windows 10; actual haptics have not yet been validated on compatible hardware. See [Microsoft's haptics documentation](https://learn.microsoft.com/en-us/windows/apps/develop/input/haptics).
 
-## 运行条件
+## Requirements and installation
 
-最新验证包可从 [Windows 自动构建](https://github.com/Dante9k/tomato-focus/actions/workflows/ci.yml) 的成功记录中下载 `tomato-focus-win-x64` 产物。
+Download the `tomato-focus-win-x64` artifact from a successful [Windows build](https://github.com/Dante9k/tomato-focus/actions/workflows/ci.yml).
 
-- Windows 10 / 11，x64，.NET Framework 4.8。
-- 解压便携包，双击 `Tomato.exe`，无需安装或管理员权限。
-- 不需要联网，不包含登录、遥测或开机自启。
+- Windows 10 or 11, x64, with .NET Framework 4.8.
+- The graphical installer accepts an editable full path and has a **Browse** button for selecting a dedicated empty folder. The default is `%LOCALAPPDATA%/Programs/TomatoFocus/1.1.15`; other writable folders on local drives are supported, including paths containing spaces or Chinese characters. The displayed path is the exact destination, with no extra subfolder appended.
+- An existing empty folder can be used. An existing installation is reused only when every file matches the package. Other nonempty folders are preserved; choose a new version folder when upgrading. The installer runs with your current user permissions and asks you to choose another location if it cannot write there.
+- For the portable version, extract the ZIP and open `Tomato.exe`. No installation or administrator permission is required.
+- The desktop app needs no internet connection and includes no login, telemetry, or automatic startup.
 
-软件正在迭代中，当前便携包未做企业代码签名。实际性能、混合 DPI、多屏与辅助技术验收边界见 [验证记录](docs/VALIDATION.md)。
+Quit a running copy through its tray menu before installing. The installer creates a Start menu shortcut and optionally a desktop shortcut, backing up existing shortcuts with the same name. It does not launch the app automatically or change saved timers. This lightweight installer does not register in Windows Installed Apps: to uninstall, quit the app, then remove its installation folder and shortcuts. Your settings are retained by default.
 
-## 构建
+The app and installer are currently unsigned. For performance measurements and the limits of mixed-DPI, multi-monitor, and accessibility verification, see the [validation record](docs/VALIDATION.md).
 
-仓库不依赖第三方 NuGet 包。Windows 自带的 .NET Framework 编译器即可构建：
+## Build
+
+The desktop project has no third-party NuGet dependencies. Build with the .NET Framework compiler included in Windows:
 
 ```powershell
 ./build.ps1 -Test
 ./package.ps1
 ./scripts/check-package.ps1
-# 安装到当前用户目录并创建快捷方式；请先从托盘正常退出旧版本
+# Install to the current user's default location and create shortcuts.
+# First quit any running version through its tray menu.
 ./scripts/install-local.ps1 -Launch
 ```
 
-输出位置：
-
-| 输出 | 位置 |
+| Output | Location |
 | --- | --- |
-| 正式桌面程序 | `build/Tomato.exe` |
-| 开发用验证工具 | `build/Tomato.Verify.exe` |
-| 可分发程序与文档 | `dist/TomatoFocus-1.1.14-win-x64/` |
-| 便携 ZIP 与 SHA-256 | `dist/` |
-| Windows 图形安装包 | `dist/TomatoFocus-<版本>-Setup.exe`，通过 `./package.ps1` 自动生成 |
-| 网站 ZIP | `dist/`，通过 `./scripts/build-website.ps1` 生成 |
+| Desktop application | `build/Tomato.exe` |
+| Developer verification tool | `build/Tomato.Verify.exe` |
+| Distributable app and bilingual documentation | `dist/TomatoFocus-1.1.15-win-x64/` |
+| Portable ZIP and SHA-256 checksum | `dist/` |
+| Windows graphical installer | `dist/TomatoFocus-<version>-Setup.exe`, generated by `./package.ps1` |
+| Website ZIP | `dist/`, generated by `./scripts/build-website.ps1` |
 
-正式压缩包通过明确的文件清单打包，不包含验证工具、运行状态、日志、调试符号或开发缓存。源代码仓库不跟踪 `build/` 和 `dist/`。
+Release archives use an explicit file allowlist. They exclude verification tools, runtime state, logs, debug symbols, and development caches. Neither `build/` nor `dist/` is tracked in Git.
 
-本地安装位于 `%LOCALAPPDATA%/Programs/TomatoFocus/1.1.14`。安装脚本会备份设置及快捷方式信息，保留旧程序；回退路径记录在该目录上级的 `backups` 中。升级不添加开机自启、不修改杀毒软件设置。若安全软件拦截，应保留完整告警用于核实，不应关闭防护或自动加入白名单。
+The developer helper `install-local.ps1` still uses the fixed `%LOCALAPPDATA%/Programs/TomatoFocus/<version>` location; use the graphical installer to choose a custom folder. The helper backs up settings and shortcut information, retains previous versions, and records rollback paths in the parent folder's `backups` directory. Upgrades do not add automatic startup or change antivirus settings. If security software blocks a file, preserve the exact alert for investigation rather than disabling protection or adding an automatic exclusion.
 
-也可以在安装 .NET Framework 4.8 开发工具的 Visual Studio 中打开 **`Tomato.Focus.sln`**，选择 x64 构建。
+Alternatively, open **`Tomato.Focus.sln`** in Visual Studio with the .NET Framework 4.8 development tools installed, and build for x64.
 
-## 验证
+## Verification
 
 ```powershell
-# 无窗口逻辑验证
+# Logic checks without visible windows
 ./build/Tomato.Verify.exe --self-test
 
-# 渲染真实控件，检查编辑态和提醒态图片
+# Render the actual editing and reminder controls
 ./build/Tomato.Verify.exe --render-preview
 
-# 需要交互桌面，会显示约 17 秒动画，结束后自动退出
+# Requires an interactive desktop; shows about 17 seconds of animation
 ./build/Tomato.Verify.exe --smoke-test
+
+# Verify custom installation and shortcuts in isolated temporary folders
+./build/Tomato.Verify.exe --installer-test ./dist/TomatoFocus-1.1.15-Setup.exe
 ```
 
-结果位于 `build/*-results.txt`。桌面流程验证使用独立状态文件，不操作日常计时状态。自动流程调用应用动作，不替代实际鼠标和触屏验收。
+Results are written to `build/*-results.txt`. Desktop checks use separate state files and leave everyday timers untouched. Installer checks cover spaces and Chinese characters, new and existing empty folders, repeat installation, nonempty-folder protection, unwritable locations, and shortcuts targeting a custom path. These checks call application actions and do not replace physical mouse or touch testing.
 
-GitHub Actions 在 Windows 上执行构建、逻辑验证、控件渲染、打包及校验，并保存图形安装包、便携包及校验文件。所有版本均从 `assets/brand/tomato-focus.png` 自动导出品牌图标，应用、快捷方式及安装窗口默认沿用这套品牌；版本号来自 `VERSION`，无需逐版本嵌入或配置。桌面动画验收需在可交互 Windows 会话中执行。
+GitHub Actions builds on Windows, runs logic checks, renders controls, packages the app, and verifies the outputs. It retains installers, portable packages, and checksums. Brand icons are generated from `assets/brand/tomato-focus.png` for the application, shortcuts, and installer. Versions come from `VERSION`. Desktop animation acceptance testing requires an interactive Windows session.
 
-推送到 `main` 后，GitHub Actions 会从经过白名单校验的网站包自动发布 GitHub Pages 官网。创建与 `VERSION` 一致的 `v<版本>` 标签后，会自动建立 GitHub Release，并上传安装包、便携包、网站包及各自的 SHA-256 校验文件。
+Pushes to `main` publish the verified website bundle to GitHub Pages. A `v<version>` tag matching `VERSION` creates a GitHub Release with the installer, portable package, website bundle, and their SHA-256 checksums.
 
-## 项目结构
+## Project layout
 
 ```text
 Tomato.Focus.sln
 src/Tomato.Focus/
-  Application/       生命周期、托盘、计时协调
-  Domain/            倒计时状态机与运动物理
-  Infrastructure/    状态存储、偏好设置、Windows 互操作
-  Presentation/      窗口、滚轮、动画和素材绘制
-  Properties/        程序元数据
+  Application/       Lifecycle, tray integration, timer coordination
+  Domain/            Countdown state and motion physics
+  Infrastructure/    State storage, preferences, Windows integration
+  Presentation/      Windows, time wheels, animation, artwork
+  Properties/        Application metadata
 tests/Tomato.Focus.Verification/
-scripts/             构建、打包、安装器与验证脚本
-assets/              内嵌图像、图标与素材来源
-docs/                架构、验收记录和预览图
-website/             宣传页源码、下载入口与独立部署配置
-marketing/           宣传视频、封面与发布文案源文件
-.github/             自动构建、Issue 和 PR 模板
+scripts/             Build, packaging, installer, verification
+assets/              Embedded images, icons, audio, provenance
+docs/                Architecture, validation records, previews
+website/             Website source, downloads, deployment templates
+marketing/           Promotional video, cover, and copy source
+.github/             Workflows and issue/PR templates
 ```
 
-生成文件集中存放：`build/` 为编译输出，`artifacts/` 为验证截图，`dist/` 为当前版本交付文件及宣传素材。`website/assets/`、`website/downloads/` 与 `website/release.js` 由网站构建生成，网站 ZIP 按白名单只收录当前版本及逐文件哈希清单。以上生成内容均不纳入 Git；已安装的旧版本和用户设置不属于源码清理范围。
+Generated content is kept in `build/` for compilation output, `artifacts/` for verification screenshots, and `dist/` for deliverables and promotional media. Website builds generate `website/assets/`, `website/downloads/`, and `website/release.js`; the website ZIP contains only the current version's allowlisted files and per-file hashes. These outputs are excluded from Git. Installed older versions and user settings are outside source cleanup.
 
-历史发布包、旧素材和重复工程副本不保留在源码目录；已提交内容可通过 Git 历史追溯。网页说明见 [website/README.md](website/README.md)，通用部署和回退流程见 [部署说明](website/deploy/RUNBOOK.md)。仓库不包含具体服务器运维记录。
+Old release packages, obsolete artwork, and duplicate projects are not kept in the source tree; previously committed content remains available in Git history. See the [website guide](website/README.md) and [deployment and rollback guide](website/deploy/RUNBOOK.md). The repository excludes private server operations records.
 
-## 状态与隐私
+## State and privacy
 
-计时按照 UTC 截止时刻判断，休眠时间计入倒计时；程序不会主动唤醒电脑。重新打开程序时会恢复未到期计时或显示已到期提醒，程序关闭期间不会后台触发。
+Timers use a UTC deadline, so time spent asleep counts toward the countdown. The app does not wake the computer. Reopening restores an unexpired timer or shows a reminder for an expired one; no background alert runs while the app is closed.
 
-状态保存在当前用户的 `LocalApplicationData/TomatoFocus/state.xml`，通过临时文件和原子替换写入；损坏时使用默认设置。错误日志只留在本机。透明动画层允许点击穿透，停止提醒后解除快捷键并回收动画资源。
+State is stored in the current user's `LocalApplicationData/TomatoFocus/state.xml`, using a temporary file and atomic replacement. Corrupt settings fall back to defaults. Error logs stay on the local machine. The transparent animation overlay allows clicks through; stopping the reminder unregisters its shortcut and releases animation resources.
 
-## 开发文档
+## Developer documentation
 
-- [架构说明](docs/ARCHITECTURE.md)
-- [验证记录](docs/VALIDATION.md)
-- [贡献指南](CONTRIBUTING.md)
-- [安全说明](SECURITY.md)
-- [版本变更](CHANGELOG.md)
-- [素材来源与提示词](assets/ARTWORK.md)
+The detailed guides below are currently in Chinese.
 
-本项目目前**保留所有权利**，未默认授予开源许可，详见 [LICENSE](LICENSE)。
+- [Architecture](docs/ARCHITECTURE.md)
+- [Validation record](docs/VALIDATION.md)
+- [Contributing](CONTRIBUTING.md)
+- [Security](SECURITY.md)
+- [Changelog](CHANGELOG.md)
+- [Artwork and source prompts](assets/ARTWORK.md)
+
+This project currently reserves **all rights** and does not grant an open-source license by default. See [LICENSE](LICENSE).

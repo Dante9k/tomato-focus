@@ -23,6 +23,7 @@ if ($PrepareOnly -and @($running | Where-Object { $_.Path -eq $executable }).Cou
 $archive = Join-Path $projectRoot "dist\TomatoFocus-$version-win-x64.zip"
 $source = Join-Path $projectRoot "dist\TomatoFocus-$version-win-x64"
 $files = @('Tomato.exe', 'Tomato.exe.config', 'README.md', 'LICENSE', 'CHANGELOG.md', 'VALIDATION.md', 'preview.png')
+if ([version]$version -ge [version]'1.1.15') { $files += 'README.zh-CN.md' }
 $previous = @(Get-ChildItem -LiteralPath (Join-Path $projectRoot 'dist'), $installRoot -Filter Tomato.exe -Recurse -ErrorAction SilentlyContinue |
     Where-Object { $_.FullName -ne $executable -and [Diagnostics.FileVersionInfo]::GetVersionInfo($_.FullName).FileVersion -ne "$version.0" } | ForEach-Object { $_.FullName })
 $backup = Join-Path $installRoot ('backups\' + (Get-Date -Format 'yyyyMMdd-HHmmss-fff'))

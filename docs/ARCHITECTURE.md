@@ -58,4 +58,4 @@ stateDiagram-v2
 
 `scripts/package.ps1` 执行验证、渲染与白名单打包，输出 SHA-256。`scripts/check-package.ps1` 对压缩包入口与哈希再次检查。GitHub CI 使用只读仓库权限与固定提交的 Actions，避免在拉取请求中获得发布权限。
 
-本版本不自动向 GitHub Releases 发布，不存储签名证书，不自动合并依赖升级。商业分发需要另行确定许可证、代码签名和硬件验收方案。
+Windows 的 `v<版本>` 标签和 macOS 的 `macos-v<版本>` 标签分别触发正式版与预览版发布。发布流程先核对标签与平台版本文件，再完成构建、测试、制品校验和 SHA-256，最后建立 GitHub Release；每个后续 Release 附带包含源提交、工作流和制品哈希的机器可读证据。人工台账见 [`docs/RELEASES.md`](RELEASES.md)。仓库不存储签名证书，也不自动合并依赖升级；商业分发仍需另行确定许可证、代码签名、公证和硬件验收方案。

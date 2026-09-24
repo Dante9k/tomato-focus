@@ -191,7 +191,12 @@ namespace Tomato.Tests
                 {
                     return false;
                 };
-                using (var form = (Form)Call("CreateInstallForm", "test", install, running))
+                string errorMessage = null;
+                Action<string> reportError = delegate (string message)
+                {
+                    errorMessage = message;
+                };
+                using (var form = (Form)Call("CreateInstallForm", "test", install, running, reportError))
                 {
                     var path = (TextBox)form.Controls.Find("InstallationPath", true).Single();
                     var browse = (Button)form.Controls.Find("BrowseFolder", true).Single();
@@ -199,6 +204,7 @@ namespace Tomato.Tests
                     Require(!path.ReadOnly && browse.Enabled, "Destination cannot be changed.");
                     path.Text = selected;
                     typeof(Button).GetMethod("OnClick", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(button, new object[] { EventArgs.Empty });
+                    Require(errorMessage == null, "Install-button action failed: " + errorMessage);
                     Require(received == selected, "Install action ignored edited destination.");
                     Require(path.ReadOnly && !browse.Enabled && button.Text == "完成", "Successful form state is incorrect.");
                 }
